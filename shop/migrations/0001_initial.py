@@ -4,22 +4,28 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Product',
+            name="Product",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200, verbose_name='商品名')),
-                ('description', models.TextField(blank=True, verbose_name='商品説明')),
-                ('price', models.PositiveIntegerField(verbose_name='価格')),
-                ('stock', models.IntegerField(default=0, verbose_name='在庫数')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=200, verbose_name="商品名")),
+                ("description", models.TextField(blank=True, verbose_name="商品説明")),
+                ("price", models.PositiveIntegerField(verbose_name="価格")),
+                ("stock", models.IntegerField(default=0, verbose_name="在庫数")),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
         ),
     ]
