@@ -3,7 +3,58 @@ name = "django-practice"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = "==3.14.3"
 dependencies = [
     "django>=6.0.2",
 ]
+
+[dependency-groups]
+dev = [
+    "django-stubs>=5.2.9",
+    "mypy>=1.19.1",
+    "pytest-cov>=7.0.0",
+    "pytest-django>=4.12.0",
+    "ruff>=0.15.2",
+    "safety>=3.7.0",
+]
+
+[tool.ruff]
+# 読みやすさと規律のバランス
+line-length = 88
+target-version = "py314"  # 3.14系の最新機能を使うという宣言
+lint.select = ["E", "F", "I", "B"]
+
+[tool.ruff.lint.isort]
+# インポート順を「Django標準 -> サードパーティ -> 自作アプリ」に自動整理するルール
+known-first-party = ["shop"]
+
+[tool.mypy]
+# 厳格な型チェックを有効化（SOLID/クリーンアーキテクチャの基本）
+strict = true
+plugins = ["mypy_django_plugin.main"]
+
+[[tool.mypy.overrides]]
+# 1. テストコードを除外
+module = "*.tests.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+# 2. 設定ファイルを除外（あなたのフォルダ名 "myproject" に合わせる
+module = "myproject.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+# 3. manage.py をファイル名で直接指定して除外
+module = "manage"
+ignore_errors = true
+
+[tool.django-stubs]
+# ここを settings.py があるフォルダ名に合わせる（例: "myproject.settings"）
+django_settings_module = "myproject.settings"
+
+[tool.pytest.ini_options]
+# テスト実行時の設定。ここもフォルダ名を合わせる
+DJANGO_SETTINGS_MODULE = "myproject.settings"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+# これを追記（厳格なチェック、DB再利用、マイグレーション省略による高速化）
+addopts = "--strict-markers --no-migrations --reuse-db"
