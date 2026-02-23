@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>EC Portfolio</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+</head>
+
+<body class="container">
+    <nav>
+        <ul>
+            <li><strong>🛒 EC SHOP</strong></li>
+        </ul>
+    </nav>
+    <main>
+        <h2>商品一覧</h2>
+        <div class="grid">
+            {% for product in products %}
+            <article>
+                <header><strong>{{ product.name }}</strong></header>
+                {{ product.description }}
+                <footer>¥{{ product.price }}</footer>
+            </article>
+            {% empty %}
+            <p>商品がありません。管理画面から登録してください。</p>
+            {% endfor %}
+        </div>
+    </main>
+</body>
+
+</html>
