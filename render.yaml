@@ -4,10 +4,10 @@ services:
     env: python
     plan: free
     region: singapore
-    # 【最重要】ビルド時はインストール「だけ」にする。ここで python を動かさない。
-    buildCommand: "pip install uv && uv pip install -r requirements.txt --system"
-    # 【最重要】ビルドが終わってパスが通った「起動時」に、すべての Django 命令を実行する
-    startCommand: "python manage.py migrate && python manage.py collectstatic --no-input && gunicorn shop.wsgi:application"
+    # uv sync で uv.lock の内容を完全に再現し、--system でパスを通す
+    buildCommand: "pip install uv && uv sync --system && python manage.py collectstatic --no-input"
+    # 起動時に DB 同期とサーバー起動を行う
+    startCommand: "python manage.py migrate && gunicorn shop.wsgi:application"
     envVars:
       - key: PYTHON_VERSION
         value: 3.14.3
