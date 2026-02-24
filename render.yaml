@@ -4,10 +4,11 @@ services:
     env: python
     plan: free
     region: singapore
-    # uvのインストール先を確実にPythonへ認識させるため --system を維持し、パスを整理
-    buildCommand: "pip install uv && uv pip install -r requirements.txt --system && python manage.py collectstatic --no-input"
-    # 起動コマンド側で migrate を実行することで、パスが通った状態で処理させます
-    startCommand: "python manage.py migrate && gunicorn shop.wsgi:application"
+    # ビルド時は「インストール」と「静的ファイルの収集」だけに絞る
+    # それでもエラーが出る場合は、collectstaticさえも起動時に回します
+    buildCommand: "pip install uv && uv pip install -r requirements.txt --system"
+    # 全てのパスが確定した「起動時」に、DB同期とサーバー起動を一気に叩き込む
+    startCommand: "python manage.py migrate && python manage.py collectstatic --no-input && gunicorn shop.wsgi:application"
     envVars:
       - key: PYTHON_VERSION
         value: 3.14.3
