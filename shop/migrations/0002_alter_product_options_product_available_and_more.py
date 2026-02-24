@@ -5,39 +5,50 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('shop', '0001_initial'),
+        ("shop", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='product',
-            options={'ordering': ['-created_at'], 'verbose_name': '商品', 'verbose_name_plural': '商品一覧'},
+            name="product",
+            options={
+                "ordering": ["-created_at"],
+                "verbose_name": "商品",
+                "verbose_name_plural": "商品一覧",
+            },
         ),
         migrations.AddField(
-            model_name='product',
-            name='available',
-            field=models.BooleanField(default=True, verbose_name='販売可能'),
+            model_name="product",
+            name="available",
+            field=models.BooleanField(default=True, verbose_name="販売可能"),
         ),
         migrations.AddField(
-            model_name='product',
-            name='updated_at',
-            field=models.DateTimeField(auto_now=True, verbose_name='更新日時'),
+            model_name="product",
+            name="updated_at",
+            field=models.DateTimeField(auto_now=True, verbose_name="更新日時"),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='created_at',
-            field=models.DateTimeField(auto_now_add=True, verbose_name='作成日時'),
+            model_name="product",
+            name="created_at",
+            field=models.DateTimeField(auto_now_add=True, verbose_name="作成日時"),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='price',
-            field=models.DecimalField(decimal_places=2, max_digits=10, validators=[django.core.validators.MinValueValidator(0)], verbose_name='価格'),
+            model_name="product",
+            name="price",
+            field=models.DecimalField(
+                decimal_places=2,
+                max_digits=10,
+                validators=[django.core.validators.MinValueValidator(0)],
+                verbose_name="価格",
+            ),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='stock',
-            field=models.IntegerField(validators=[django.core.validators.MinValueValidator(0)], verbose_name='在庫数'),
+            model_name="product",
+            name="stock",
+            field=models.IntegerField(
+                validators=[django.core.validators.MinValueValidator(0)],
+                verbose_name="在庫数",
+            ),
         ),
     ]
