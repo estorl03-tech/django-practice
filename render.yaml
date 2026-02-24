@@ -4,9 +4,10 @@ services:
     env: python
     plan: free
     region: singapore
-    buildCommand: "pip install uv && uv pip install -r requirements.txt --system && python manage.py collectstatic --no-input"
-    # ここを修正：uv run を頭につけることで、パスを強制的に通します
-    startCommand: "uv run python manage.py migrate && uv run gunicorn shop.wsgi:application"
+    # ビルド時はインストールだけ！余計なことは一切させない
+    buildCommand: "pip install uv && uv pip install -r requirements.txt --system"
+    # 起動（Start）して、道が整ってから一気に実行する
+    startCommand: "python manage.py migrate && python manage.py collectstatic --no-input && gunicorn shop.wsgi:application"
     envVars:
       - key: PYTHON_VERSION
         value: 3.14.3
