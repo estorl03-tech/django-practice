@@ -33,5 +33,5 @@ class Product(models.Model):
         verbose_name_plural = "商品一覧"
         ordering = ["-created_at"]
 
-    def __str__(self):
+    def __str__(self) -> str:  # 「-> str」を追加
         return self.name
