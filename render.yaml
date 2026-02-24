@@ -2,12 +2,14 @@ services:
   - type: web
     name: django-ec-portfolio
     env: python
-    plan: free  # 👈 ここが重要！「無料で動かせ」と強制します
-    region: singapore # 日本から近いリージョン
-    buildCommand: "pip install uv && uv pip install -r requirements.txt --system && python manage.py collectstatic --no-input && python manage.py migrate"
-    startCommand: "gunicorn myproject.wsgi:application"
+    plan: free
+    region: singapore
+    # uvのインストール先を確実にPythonへ認識させるため --system を維持し、パスを整理
+    buildCommand: "pip install uv && uv pip install -r requirements.txt --system && python manage.py collectstatic --no-input"
+    # 起動コマンド側で migrate を実行することで、パスが通った状態で処理させます
+    startCommand: "python manage.py migrate && gunicorn shop.wsgi:application"
     envVars:
       - key: PYTHON_VERSION
         value: 3.14.3
       - key: DJANGO_SETTINGS_MODULE
-        value: myproject.settings
+        value: shop.settings
