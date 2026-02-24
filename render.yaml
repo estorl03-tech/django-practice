@@ -4,14 +4,16 @@ services:
     env: python
     plan: free
     region: singapore
-    # ベストプラクティス：環境変数で「システム環境へのインストール」を許可し、uv syncを実行
-    buildCommand: "pip install uv && UV_SYSTEM_PYTHON=1 uv sync && python manage.py collectstatic --no-input"
-    # 運用：uv run を介して、確実にロックされた依存関係で実行
-    startCommand: "uv run python manage.py migrate && uv run gunicorn shop.wsgi:application"
+    # 品質保証：uv.lock を使った自律型ビルド
+    buildCommand: "curl -LsSf https://astral.sh/uv/install.sh | sh && source $HOME/.cargo/env && uv sync && uv run python manage.py collectstatic --no-input"
+    # 運用：myproject.wsgi を呼び出すように修正
+    startCommand: "source $HOME/.cargo/env && uv run python manage.py migrate && uv run gunicorn myproject.wsgi:application"
     envVars:
       - key: PYTHON_VERSION
         value: 3.14.3
       - key: DJANGO_SETTINGS_MODULE
-        value: shop.settings
-      - key: UV_SYSTEM_PYTHON # これを環境変数に加えることで、--system フラグなしでシステムに同期できます
+        value: myproject.settings  # shop.settings から修正
+      - key: PYTHONPATH
+        value: "."
+      - key: UV_SYSTEM_PYTHON
         value: "1"
