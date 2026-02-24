@@ -4,10 +4,10 @@ services:
     env: python
     plan: free
     region: singapore
-    # uv sync で uv.lock の内容を完全に再現し、--system でパスを通す
+    # 品質保証：uv.lock を使って依存関係を「システムレベル」に強制同期
     buildCommand: "pip install uv && uv sync --system && python manage.py collectstatic --no-input"
-    # 起動時に DB 同期とサーバー起動を行う
-    startCommand: "python manage.py migrate && gunicorn shop.wsgi:application"
+    # 実行時：uv run を使うことで、uv.lock で定義された正確な環境で Django を起動
+    startCommand: "uv run python manage.py migrate && uv run gunicorn shop.wsgi:application"
     envVars:
       - key: PYTHON_VERSION
         value: 3.14.3
