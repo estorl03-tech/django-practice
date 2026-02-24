@@ -4,12 +4,14 @@ services:
     env: python
     plan: free
     region: singapore
-    # 品質保証：uv.lock を参照し、システム環境に直接インストール。ここで python は動かさない。
-    buildCommand: "pip install uv && uv pip install -r requirements.txt --system"
-    # 運用：起動時に uv run を通して確実に Django を呼び出す
-    startCommand: "uv run python manage.py migrate && uv run python manage.py collectstatic --no-input && uv run gunicorn shop.wsgi:application"
+    # ベストプラクティス：環境変数で「システム環境へのインストール」を許可し、uv syncを実行
+    buildCommand: "pip install uv && UV_SYSTEM_PYTHON=1 uv sync && python manage.py collectstatic --no-input"
+    # 運用：uv run を介して、確実にロックされた依存関係で実行
+    startCommand: "uv run python manage.py migrate && uv run gunicorn shop.wsgi:application"
     envVars:
       - key: PYTHON_VERSION
         value: 3.14.3
       - key: DJANGO_SETTINGS_MODULE
         value: shop.settings
+      - key: UV_SYSTEM_PYTHON # これを環境変数に加えることで、--system フラグなしでシステムに同期できます
+        value: "1"
