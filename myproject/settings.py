@@ -14,7 +14,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-local-development-key
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 
 # Renderのドメインとローカルを許可
-ALLOWED_HOSTS = [".render.com", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["django-ec-portfolio.onrender.com", "localhost", "127.0.0.1"]
 
 # --- アプリケーション定義 ---
 INSTALLED_APPS = [
