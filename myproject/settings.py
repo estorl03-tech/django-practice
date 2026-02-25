@@ -7,14 +7,29 @@ import dj_database_url  # type: ignore
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- セキュリティ ベストプラクティス ---
-# 環境変数から取得。なければローカル用を使う。
-SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-local-development-key")
+# 1. SECRET_KEY は環境変数から読み込む（なければ適当な文字列）
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-temporary-key-for-dev")
 
-# 本番では必ず False になるように設定
-DEBUG = os.environ.get("DEBUG", "True") == "True"
+# 2. DEBUG は本番（Render）では必ず False にする
+# 環境変数 RENDER があれば本番とみなす
+DEBUG = "RENDER" not in os.environ
 
-# Renderのドメインとローカルを許可
-ALLOWED_HOSTS = ["django-ec-portfolio.onrender.com", "localhost", "127.0.0.1"]
+# 最初はローカル環境用のみ
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+
+if not DEBUG:
+    # 本番（Render）では、環境変数から取得したホスト名を追加
+    render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+    if render_host:
+        ALLOWED_HOSTS.append(render_host)
+
+    # セキュリティ設定を維持
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 # --- アプリケーション定義 ---
 INSTALLED_APPS = [
