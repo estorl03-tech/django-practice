@@ -28,6 +28,7 @@ dev = [
 line-length = 88
 target-version = "py314"  # 3.14系の最新機能を使うという宣言
 lint.select = ["E", "F", "I", "B"]
+exclude = ["**/migrations/*.py"]
 
 [tool.ruff.lint.isort]
 # インポート順を「Django標準 -> サードパーティ -> 自作アプリ」に自動整理するルール

@@ -33,7 +33,8 @@ def add_to_cart(request: HttpRequest, product_id: int) -> HttpResponse:
     # 存在確認（念のため。なくても動作はしますが丁寧な実装です）
     get_object_or_404(Product, id=product_id)
 
-    # 【ここを修正】Service層に session と product_id を渡して、最新の合計数を受け取る [cite: 2026-02-21]
+    # 【ここを修正】Service層に session と product_id を渡して、
+    # 最新の合計数を受け取る [cite: 2026-02-21]
     total_quantity = add_item_to_cart(request.session, product_id)
 
     # htmx リクエスト（部分更新）の判定

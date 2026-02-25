@@ -7,53 +7,114 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('shop', '0002_alter_product_options_product_available_and_more'),
+        ("shop", "0002_alter_product_options_product_available_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='product',
-            old_name='available',
-            new_name='is_active',
+            model_name="product",
+            old_name="available",
+            new_name="is_active",
         ),
         migrations.AlterField(
-            model_name='product',
-            name='price',
-            field=models.DecimalField(decimal_places=0, max_digits=10, validators=[django.core.validators.MinValueValidator(0)], verbose_name='価格'),
+            model_name="product",
+            name="price",
+            field=models.DecimalField(
+                decimal_places=0,
+                max_digits=10,
+                validators=[django.core.validators.MinValueValidator(0)],
+                verbose_name="価格",
+            ),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='stock',
-            field=models.IntegerField(default=0, validators=[django.core.validators.MinValueValidator(0)], verbose_name='在庫数'),
+            model_name="product",
+            name="stock",
+            field=models.IntegerField(
+                default=0,
+                validators=[django.core.validators.MinValueValidator(0)],
+                verbose_name="在庫数",
+            ),
         ),
         migrations.CreateModel(
-            name='Order',
+            name="Order",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='注文日時')),
-                ('status', models.CharField(default='pending', max_length=20, verbose_name='ステータス')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='購入者')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="注文日時"),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        default="pending", max_length=20, verbose_name="ステータス"
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="購入者",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': '注文',
-                'verbose_name_plural': '注文一覧',
+                "verbose_name": "注文",
+                "verbose_name_plural": "注文一覧",
             },
         ),
         migrations.CreateModel(
-            name='OrderItem',
+            name="OrderItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('quantity', models.PositiveIntegerField(default=1, verbose_name='数量')),
-                ('price', models.DecimalField(decimal_places=0, max_digits=10, verbose_name='購入時価格')),
-                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='shop.order')),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='shop.product', verbose_name='商品')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "quantity",
+                    models.PositiveIntegerField(default=1, verbose_name="数量"),
+                ),
+                (
+                    "price",
+                    models.DecimalField(
+                        decimal_places=0, max_digits=10, verbose_name="購入時価格"
+                    ),
+                ),
+                (
+                    "order",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="items",
+                        to="shop.order",
+                    ),
+                ),
+                (
+                    "product",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="shop.product",
+                        verbose_name="商品",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': '注文明細',
-                'verbose_name_plural': '注文明細一覧',
+                "verbose_name": "注文明細",
+                "verbose_name_plural": "注文明細一覧",
             },
         ),
     ]
