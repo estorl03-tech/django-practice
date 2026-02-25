@@ -31,3 +31,9 @@ jobs:
 
       - name: Test (pytest)
         run: uv run pytest
+
+        # pytest のステップの直後に追加
+      - name: Deploy to Render
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          curl -f "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
