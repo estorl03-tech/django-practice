@@ -11,25 +11,28 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-temporary-key-for-dev")
 
 # 2. DEBUG は本番（Render）では必ず False にする
-# 環境変数 RENDER があれば本番とみなす
-DEBUG = "RENDER" not in os.environ
+# Render(本番) または GitHub Actions(CI) のどちらかなら DEBUG = False
+DEBUG = not (os.environ.get("RENDER") or os.environ.get("GITHUB_ACTIONS"))
 
-# 最初はローカル環境用のみ
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 if not DEBUG:
-    # 本番（Render）では、環境変数から取得したホスト名を追加
+    # CIや本番環境では、Renderのドメインを許可リストに追加
     render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
     if render_host:
         ALLOWED_HOSTS.append(render_host)
 
-    # セキュリティ設定を維持
+    # セキュリティ設定を強制有効化（これで警告が消える）
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = "DENY"
+
 
 # --- アプリケーション定義 ---
 INSTALLED_APPS = [
