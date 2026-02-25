@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD Pipeline - High Quality EC Portfolio
 
 on:
   push:
@@ -8,32 +8,59 @@ on:
 
 jobs:
   quality-assurance:
+    name: Lint, Type Check, and Test
     runs-on: ubuntu-latest
+    
+    # 失敗しても環境変数を安全に扱うための設定
+    env:
+      DJANGO_SETTINGS_MODULE: "myproject.settings"
+      DATABASE_URL: "sqlite:///:memory:" # テスト用の揮発性DB
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          enable-cache: true
+          enable-cache: true # パフォーマンス・ベストプラクティス遵守
 
-      - name: Set up Python
+      - name: Set up Python 3.14.3
         run: uv python install 3.14.3
 
-      - name: Install dependencies
-        run: uv sync --all-groups
+      - name: Install Dependencies
+        run: uv sync --all-groups # 依存関係管理の徹底
 
-      - name: Lint (Ruff)
-        run: uv run ruff check .
+      # 1. Lint / 静的解析 (Ruff)
+      - name: Lint with Ruff
+        run: uv run ruff check . # 品質保証の要
 
-      - name: Type Check (mypy)
-        run: uv run mypy .
+      # 2. Type Check (mypy)
+      - name: Type Check with mypy
+        run: uv run mypy . # スパゲッティ化の防止
 
-      - name: Test (pytest)
-        run: uv run pytest
+      # 3. Security Check (Django Check)
+      - name: Django Security Check
+        run: uv run python manage.py check --deploy --fail-level WARNING
 
-        # pytest のステップの直後に追加
-      - name: Deploy to Render
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      # 4. Unit & Integration Tests (pytest)
+      - name: Run Tests with pytest
+        run: uv run pytest # 可用性の担保
+
+  deploy:
+    name: Automated Deployment to Render
+    needs: quality-assurance # ⚠ 重要: LintとTestが成功した時のみデプロイ
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Trigger Render Deploy Hook
+        env:
+          DEPLOY_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }} # 秘密情報の管理
         run: |
-          curl -f "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+          # 事実に基づいたデプロイ実行。URLが空の場合は失敗させる。
+          if [ -z "$DEPLOY_URL" ]; then
+            echo "Error: RENDER_DEPLOY_HOOK_URL is not set in GitHub Secrets."
+            exit 1
+          fi
+          curl -f "$DEPLOY_URL"
