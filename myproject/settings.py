@@ -9,8 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- セキュリティ ベストプラクティス ---
 # 1. SECRET_KEY は環境変数から読み込む（なければ適当な文字列）
 SECRET_KEY = os.environ.get(
-    "SECRET_KEY",
-    "django-insecure-ci-test-key-must-be-very-long-for-passing-check-1234567890",
+    "SECRET_KEY", "7#n(v9&j!@*m_4$k+s2q8wz5p^r1x6u9b0y3h7t4e5g2i1o8n0a6s5d4f3g2h1j"
 )
 # 2. DEBUG は本番（Render）では必ず False にする
 # Render(本番) または GitHub Actions(CI) のどちらかなら DEBUG = False
