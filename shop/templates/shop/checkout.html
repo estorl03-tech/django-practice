@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<article>
+    <h2>🛒 カートの中身</h2>
+
+    {% if cart_items %}
+    <table class="striped">
+        <thead>
+            <tr>
+                <th>商品名</th>
+                <th>単価</th>
+                <th>数量</th>
+                <th>小計</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cart_items %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td>¥{{ item.product.price|floatformat:0 }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>¥{{ item.item_total|floatformat:0 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" style="text-align: right;"><strong>合計金額</strong></td>
+                <td><strong>¥{{ total_price|floatformat:0 }}</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="grid">
+        <a href="{% url 'shop:empty_cart' %}" class="outline secondary" role="button">カートを空にする</a>
+
+        <form method="post" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit" class="primary" {% if not cart_items %}disabled{% endif %}></button>注文を確定する</button>
+        </form>
+    </div>
+
+    {% else %}
+    <p>カートに商品が入っていません。</p>
+    <a href="{% url 'shop:product_list' %}" class="contrast" role="button">商品一覧へ戻る</a>
+    {% endif %}
+</article>
+{% endblock %}
