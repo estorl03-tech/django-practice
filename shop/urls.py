@@ -7,9 +7,10 @@ app_name = "shop"
 urlpatterns = [
     # 商品一覧
     path("", views.product_list, name="product_list"),
-    # カート追加（htmxから呼ばれる想定）
+    # カート追加（product_id を受け取る）
     path("add/<int:product_id>/", views.add_to_cart, name="add_to_cart"),
-    # 注文・完了画面
+    # チェックアウト
     path("checkout/", views.checkout, name="checkout"),
-    path("empty/", views.empty_cart, name="empty_cart"),
+    # 【重要】カートを空にするパス
+    path("cart/empty/", views.empty_cart, name="empty_cart"),
 ]

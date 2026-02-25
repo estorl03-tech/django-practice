@@ -1,39 +1,53 @@
+from typing import TYPE_CHECKING
+
 from django.contrib import admin
 
 from .models import Order, OrderItem, Product
 
+# 実行時のクラッシュを防ぎつつ、mypyに型を認識させるための分岐
+if TYPE_CHECKING:
+    # mypy用: ジェネリクスとして定義
+    ProductAdminBase = admin.ModelAdmin[Product]
+    OrderAdminBase = admin.ModelAdmin[Order]
+    OrderItemInlineBase = admin.TabularInline[OrderItem, Order]
+else:
+    # 実行時用: 通常のクラスとして定義
+    ProductAdminBase = admin.ModelAdmin
+    OrderAdminBase = admin.ModelAdmin
+    OrderItemInlineBase = admin.TabularInline
 
-# 商品管理の設定
+
 @admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
-    # 一覧画面に表示する項目
+class ProductAdmin(ProductAdminBase):
+    """
+    商品管理の設定
+    - list_editable により一覧画面からクイック編集が可能
+    """
+
     list_display = ["name", "price", "stock", "is_active", "created_at"]
-    # 右側のフィルター機能
     list_filter = ["is_active", "created_at"]
-    # 一覧画面でそのまま編集できる項目
     list_editable = ["price", "stock", "is_active"]
-    # 検索窓の対象
     search_fields = ["name"]
 
 
-# 注文詳細を注文画面に埋め込むための設定 (Inline)
-class OrderItemInline(admin.TabularInline):
+class OrderItemInline(OrderItemInlineBase):
+    """
+    注文詳細を注文編集画面にインライン表示
+    - 注文確定後の不慮の書き換えを防ぐため readonly を設定
+    """
+
     model = OrderItem
-    extra = 0  # デフォルトの空行を0にする
-    readonly_fields = [
-        "product",
-        "quantity",
-        "price",
-    ]  # 注文後の書き換え防止（読み取り専用）
+    extra = 0
+    readonly_fields = ["product", "quantity", "price"]
 
 
-# 注文管理の設定
 @admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
+class OrderAdmin(OrderAdminBase):
+    """
+    注文管理の設定
+    - インライン表示により注文内容を一元管理
+    """
+
     list_display = ["id", "user", "created_at", "status"]
     list_filter = ["status", "created_at"]
-    # 注文画面の下部に明細を表示
     inlines = [OrderItemInline]
-
-
-# OrderItem単体での登録は不要（Order内で管理するため）
