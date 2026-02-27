@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.humanize",
     "shop",  # ドメイン分割されたアプリ
 ]
 
@@ -69,6 +70,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "shop.context_processors.cart_count_processor",
             ],
         },
     },
@@ -109,3 +111,12 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# --- メディアファイル設定 ---
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+# --- 認証設定 (404エラー解決用) ---
+LOGIN_REDIRECT_URL = "/"  # ログイン成功時のリダイレクト先
+LOGOUT_REDIRECT_URL = "/"  # ログアウト時のリダイレクト先
+LOGIN_URL = "login"  # ログインが必要な時に飛ばすURL名

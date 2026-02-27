@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Portfolio Shop</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+</head>
+
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    <nav class="container">
+        <ul>
+            <li><strong><a href="{% url 'shop:product_list' %}" class="contrast">Gemini Shop</a></strong></li>
+        </ul>
+        <ul>
+            <li>
+                <a href="{% url 'shop:order_history' %}" class="secondary">注文履歴</a>
+            </li>
+            <li>
+                <a href="{% url 'shop:checkout' %}" class="secondary" id="cart-link">
+                    🛒 カート <span id="cart-count" class="badge">{{ cart_count|default:0 }}</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'shop:empty_cart' %}" class="outline secondary" style="font-size: 0.8rem;">空にする</a>
+            </li>
+        </ul>
+    </nav>
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+
+</html>

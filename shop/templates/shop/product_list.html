@@ -1,33 +1,66 @@
-<!DOCTYPE html>
-<html lang="ja">
+{% extends "base.html" %}
+{% load humanize %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>EC Portfolio</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
-</head>
+{% block content %}
+<section>
+    <h2 style="margin-bottom: 1.5rem;">商品一覧</h2>
 
-<body class="container">
-    <nav>
-        <ul>
-            <li><strong>🛒 EC SHOP</strong></li>
-        </ul>
-    </nav>
-    <main>
-        <h2>商品一覧</h2>
-        <div class="grid">
-            {% for product in products %}
-            <article>
-                <header><strong>{{ product.name }}</strong></header>
-                {{ product.description }}
-                <footer>¥{{ product.price }}</footer>
-            </article>
-            {% empty %}
-            <p>商品がありません。管理画面から登録してください。</p>
-            {% endfor %}
-        </div>
-    </main>
-</body>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+        {% for product in products %}
+        <article style="
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100%;
+        ">
+            <header style="
+                padding: 0; 
+                margin: 0; 
+                background: transparent; 
+                border-bottom: 1px solid var(--pico-muted-border-color); 
+                height: 240px; 
+                display: flex; 
+                justify-content: center; 
+                align-items: center;
+            ">
+                {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}"
+                    style="width: 100%; height: 100%; object-fit: contain; border-radius: 0;">
+                {% endif %}
+            </header>
 
-</html>
+            <div style="padding: 1rem; flex-grow: 1; display: flex; flex-direction: column;">
+                <h6 style="margin: 0; line-height: 1.2;">{{ product.name }}</h6>
+
+                <div style="
+                    font-size: 0.75rem; 
+                    color: var(--pico-secondary-color); 
+                    margin: 0; 
+                    line-height: 1.4;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 4;
+                    line-clamp: 4;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    white-space: pre-line;
+                ">
+                    {{ product.catch_copy }}{% if product.catch_copy %}\n{% endif %}{{ product.description }}
+                </div>
+
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; margin-top: 0.5rem;">
+                    <strong style="color: var(--pico-primary); font-size: 1.1rem;">
+                        ¥{{ product.price|floatformat:0|intcomma }}
+                    </strong>
+                    <button class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; width: auto; margin: 0;"
+                        hx-post="{% url 'shop:add_to_cart' product.id %}" hx-target="#cart-count">
+                        追加
+                    </button>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

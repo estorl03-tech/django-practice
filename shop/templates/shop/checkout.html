@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<article>
+    <h2>🛒 カートの中身</h2>
+
+    {% if cart_items %}
+    <table class="striped">
+        <thead>
+            <tr>
+                <th>商品名</th>
+                <th>単価</th>
+                <th>数量</th>
+                <th>小計</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cart_items %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td>¥{{ item.product.price|floatformat:0 }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>¥{{ item.item_total|floatformat:0 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" style="text-align: right;"><strong>合計金額</strong></td>
+                <td><strong>¥{{ total_price|floatformat:0 }}</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="grid" style="grid-template-columns: 1fr auto auto; align-items: center; gap: 1rem; margin-top: 1rem;">
+        <div></div>
+
+        <a href="{% url 'shop:empty_cart' %}" class="outline secondary" role="button"
+            style="width: fit-content; margin-bottom: 0; padding: 0.5rem 1rem; font-size: 0.9rem;">
+            カートを空にする
+        </a>
+
+        <form method="post" style="margin: 0; width: fit-content;">
+            {% csrf_token %}
+            {% if cart_items %}
+            <button type="submit" class="primary"
+                style="width: fit-content; margin-bottom: 0; padding: 0.5rem 1rem; font-size: 0.9rem;">
+                注文を確定する
+            </button>
+            {% else %}
+            <button type="submit" class="primary"
+                style="width: fit-content; margin-bottom: 0; padding: 0.5rem 1rem; font-size: 0.9rem;" disabled>
+                注文を確定する
+            </button>
+            {% endif %}
+        </form>
+
+        {% else %}
+        <p>カートに商品が入っていません。</p>
+        <a href="{% url 'shop:product_list' %}" class="contrast" role="button">商品一覧へ戻る</a>
+        {% endif %}
+</article>
+{% endblock %}

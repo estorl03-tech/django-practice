@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+<article style="text-align: center;">
+    <h2>🎉 ご注文ありがとうございました！</h2>
+    <p>注文処理が正常に完了しました。</p>
+    <a href="{% url 'shop:product_list' %}" class="primary" role="button">トップページへ戻る</a>
+</article>
+{% endblock %}
