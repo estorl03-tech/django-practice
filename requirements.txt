@@ -12,6 +12,8 @@ gunicorn==25.1.0
     # via django-practice (pyproject.toml)
 packaging==26.0
     # via gunicorn
+pillow==12.1.1
+    # via django-practice (pyproject.toml)
 psycopg==3.3.3
     # via django-practice (pyproject.toml)
 psycopg-binary==3.3.3

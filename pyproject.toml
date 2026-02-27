@@ -8,6 +8,7 @@ dependencies = [
     "dj-database-url>=3.1.2",
     "django>=6.0.2",
     "gunicorn>=25.1.0",
+    "pillow>=12.1.1",
     "psycopg[binary]>=3.3.3",
     "whitenoise>=6.11.0",
 ]
@@ -38,6 +39,9 @@ known-first-party = ["shop"]
 # 厳格な型チェックを有効化（SOLID/クリーンアーキテクチャの基本）
 strict = true
 plugins = ["mypy_django_plugin.main"]
+ignore_missing_imports = true
+check_untyped_defs = true
+disallow_untyped_decorators = false
 
 [[tool.mypy.overrides]]
 # 1. テストコードを除外

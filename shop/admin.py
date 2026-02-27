@@ -29,6 +29,8 @@ class ProductAdmin(ProductAdminBase):
     list_editable = ["price", "stock", "is_active"]
     search_fields = ["name"]
 
+    fields = ("name", "description", "price", "image", "stock", "is_active")
+
 
 class OrderItemInline(OrderItemInlineBase):
     """

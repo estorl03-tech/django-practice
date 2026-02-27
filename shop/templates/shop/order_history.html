@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<article>
+    <h2>注文履歴</h2>
+
+    {% if orders %}
+    {# 注文がある場合はループで表示 [cite: 2026-02-21] #}
+    {% for order in orders %}
+    <article style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem;">
+        <header>
+            <strong>注文日時:</strong> {{ order.created_at|date:"Y年m月d日 H:i" }}
+        </header>
+        <p><strong>合計金額:</strong> ¥{{ order.total_price|intcomma }}</p>
+        <p><strong>ステータス:</strong> {{ order.status }}</p>
+
+        {# 注文詳細（OrderItem）も表示したい場合はここに追加可能 [cite: 2026-02-21] #}
+        <details>
+            <summary>注文内容を表示</summary>
+            <ul>
+                {% for item in order.items.all %}
+                <li>{{ item.product.name }} × {{ item.quantity }}</li>
+                {% endfor %}
+            </ul>
+        </details>
+    </article>
+    {% endfor %}
+    {% else %}
+    {# 注文がない場合の表示 [cite: 2026-02-21] #}
+    <p>まだ注文履歴はありません。</p>
+    <a href="{% url 'shop:product_list' %}" role="button">買い物を続ける</a>
+    {% endif %}
+</article>
+{% endblock %}

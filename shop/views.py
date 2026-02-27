@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .models import Product
+from .models import Order, Product
 from .services import add_item_to_cart, clear_cart, get_cart_count
 
 
@@ -18,7 +18,7 @@ class CartItem:
     quantity: int
 
 
-@login_required
+# @login_required
 def product_list(request: HttpRequest) -> HttpResponse:
     """商品一覧を表示 [cite: 2026-02-21]"""
     products = Product.objects.filter(is_active=True)
@@ -37,9 +37,7 @@ def add_to_cart(request: HttpRequest, product_id: int) -> HttpResponse:
     total_quantity = add_item_to_cart(request.session, product_id)
 
     if request.headers.get("HX-Request"):
-        return render(
-            request, "shop/partials/cart_counter.html", {"cart_count": total_quantity}
-        )
+        return HttpResponse(str(total_quantity))
 
     # 【修正】ifの外側にも return を配置し、mypyエラーを解消 [cite: 2026-02-21]
     return redirect("shop:product_list")
@@ -66,7 +64,7 @@ def checkout(request: HttpRequest) -> HttpResponse:
         if cart_items:
             from .services import create_order
 
-            create_order(request.user, cart_items)
+        _ = create_order(request.user, cart_items, total_price)
 
         request.session["cart"] = {}
         return render(request, "shop/complete.html")
@@ -80,12 +78,15 @@ def checkout(request: HttpRequest) -> HttpResponse:
         for i in cart_items
     ]
 
+    cart_count = sum(cart.values())
+
     return render(
         request,
         "shop/checkout.html",
         {
             "cart_items": display_items,
             "total_price": total_price,
+            "cart_count": cart_count,
         },
     )
 
@@ -98,3 +99,17 @@ def empty_cart(request: HttpRequest) -> HttpResponse:
     """
     clear_cart(request.session)
     return redirect("shop:product_list")
+
+
+@login_required
+def order_history(request: HttpRequest) -> HttpResponse:
+    """注文履歴を表示（まずは器だけ作成） [cite: 2026-02-21]"""
+    # mypy エラー解消: request.user が User 型であることを明示 [cite: 2026-02-21]
+    assert isinstance(request.user, User)
+    # 後ほど Order モデルからデータを取得するロジックを書きます
+    orders = (
+        Order.objects.filter(user=request.user)
+        .prefetch_related("items__product")
+        .order_by("-created_at")
+    )
+    return render(request, "shop/order_history.html", {"orders": orders})

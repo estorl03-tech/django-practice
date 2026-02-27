@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Any
 
 from django.contrib.auth.models import User
@@ -23,19 +24,27 @@ def get_cart_count(session: dict[str, Any]) -> int:
     return sum(cart.values())
 
 
-def create_order(user: User, cart_items: Any) -> Order:
-    """注文作成ロジック: トランザクションでデータの整合性を保証 [cite: 2026-02-21]"""
+def create_order(user: User, cart_items: Any, total_price: Decimal) -> Order:
+    """注文作成ロジック: 在庫を減らし、トランザクションで整合性を保証"""
     with transaction.atomic():
-        order = Order.objects.create(user=user, status="pending")
+        # 1. 注文親レコードの作成
+        order = Order.objects.create(
+            user=user, status="pending", total_price=total_price
+        )
 
+        # 2. 明細の作成と在庫の減算 [cite: 2026-02-21]
         for item in cart_items:
-            # mypyに属性の存在を確信させる [cite: 2026-02-21]
             OrderItem.objects.create(
                 order=order,
                 product=item.product,
                 quantity=item.quantity,
                 price=item.product.price,
             )
+
+            # 在庫を減らす (F-expressionを使うとより安全ですが、まずはシンプルに)
+            product = item.product
+            product.stock -= item.quantity
+            product.save()
 
         return order
 

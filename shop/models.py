@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -21,6 +23,10 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="作成日時")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="更新日時")
 
+    image = models.ImageField(
+        upload_to="products/", null=True, blank=True, verbose_name="商品画像"
+    )
+
     class Meta:
         verbose_name = "商品"
         verbose_name_plural = "商品一覧"
@@ -28,6 +34,16 @@ class Product(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        from django.db.models.fields.files import ImageFieldFile
+
+        if self.image and isinstance(self.image, ImageFieldFile):
+            # 前に書いた最適化ロジックを入れる（または一旦シンプルに保存）
+            super().save(*args, **kwargs)
+        else:
+            # 画像がない場合も保存処理が必要なため追加
+            super().save(*args, **kwargs)
 
 
 class Order(models.Model):
@@ -37,6 +53,10 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="注文日時")
     status = models.CharField(
         max_length=20, default="pending", verbose_name="ステータス"
+    )
+
+    total_price = models.DecimalField(
+        max_digits=10, decimal_places=0, default=0, verbose_name="合計金額"
     )
 
     class Meta:
