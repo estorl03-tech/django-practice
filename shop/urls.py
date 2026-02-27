@@ -14,4 +14,7 @@ urlpatterns = [
     # 【重要】カートを空にするパス
     path("cart/empty/", views.empty_cart, name="empty_cart"),
     path("orders/", views.order_history, name="order_history"),
+    path(
+        "cart/update/<int:product_id>/", views.update_cart_item, name="update_cart_item"
+    ),
 ]

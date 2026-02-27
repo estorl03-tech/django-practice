@@ -12,6 +12,7 @@
                 <th>単価</th>
                 <th>数量</th>
                 <th>小計</th>
+                <th>操作</th>
             </tr>
         </thead>
         <tbody>
@@ -19,15 +20,31 @@
             <tr>
                 <td>{{ item.product.name }}</td>
                 <td>¥{{ item.product.price|floatformat:0 }}</td>
-                <td>{{ item.quantity }}</td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <button class="outline secondary" hx-post="{% url 'shop:update_cart_item' item.product.id %}"
+                            hx-vals='{"action": "remove"}' hx-target="main.container"
+                            style="padding: 0 0.5rem; margin-bottom: 0;">-</button>
+
+                        <span style="font-weight: bold; min-width: 1.5rem; text-align: center;">{{item.quantity}}</span>
+                        <button class="outline secondary" ] hx-post="{% url 'shop:update_cart_item' item.product.id %}"
+                            hx-vals='{"action": "add"}' hx-target="main.container"
+                            style="padding: 0 0.5rem; margin-bottom: 0;">+</button>
+                    </div>
+                </td>
                 <td>¥{{ item.item_total|floatformat:0 }}</td>
+                <td>
+                    <button class="outline contrast" hx-post="{% url 'shop:update_cart_item' item.product.id %}"
+                        hx-vals='{"action": "delete"}' hx-target="main.container" hx-confirm="この商品をカートから削除しますか？"
+                        style="padding: 0 0.5rem; font-size: 0.8rem; margin-bottom: 0;">🗑️ 削除</button>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
         <tfoot>
             <tr>
                 <td colspan="3" style="text-align: right;"><strong>合計金額</strong></td>
-                <td><strong>¥{{ total_price|floatformat:0 }}</strong></td>
+                <td colspan="2"><strong>¥{{ total_price|floatformat:0 }}</strong></td>
             </tr>
         </tfoot>
     </table>
@@ -42,22 +59,18 @@
 
         <form method="post" style="margin: 0; width: fit-content;">
             {% csrf_token %}
-            {% if cart_items %}
             <button type="submit" class="primary"
                 style="width: fit-content; margin-bottom: 0; padding: 0.5rem 1rem; font-size: 0.9rem;">
                 注文を確定する
             </button>
-            {% else %}
-            <button type="submit" class="primary"
-                style="width: fit-content; margin-bottom: 0; padding: 0.5rem 1rem; font-size: 0.9rem;" disabled>
-                注文を確定する
-            </button>
-            {% endif %}
         </form>
+    </div>
 
-        {% else %}
+    {% else %}
+    <div style="text-align: center; padding: 2rem 0;">
         <p>カートに商品が入っていません。</p>
         <a href="{% url 'shop:product_list' %}" class="contrast" role="button">商品一覧へ戻る</a>
-        {% endif %}
+    </div>
+    {% endif %}
 </article>
 {% endblock %}

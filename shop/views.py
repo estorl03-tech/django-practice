@@ -1,10 +1,13 @@
 from dataclasses import dataclass
 from decimal import Decimal  # Decimal の追加 [cite: 2026-02-21]
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from .models import Order, Product
 from .services import add_item_to_cart, clear_cart, get_cart_count
@@ -64,10 +67,18 @@ def checkout(request: HttpRequest) -> HttpResponse:
         if cart_items:
             from .services import create_order
 
-        _ = create_order(request.user, cart_items, total_price)
+        try:
+            _ = create_order(request.user, cart_items, total_price)
+            request.session["cart"] = {}
+            # 成功メッセージ
+            messages.success(request, "注文が完了しました！")
+            return render(request, "shop/complete.html")
 
-        request.session["cart"] = {}
-        return render(request, "shop/complete.html")
+        except ValidationError as e:
+            # 🛡️ 在庫不足などのビジネスルール違反をキャッチ [cite: 2026-02-21]
+            # e.message または e.messages でエラー内容を取得して通知
+            messages.error(request, "".join(e.messages))
+            # POSTだが、エラー時はそのまま下のレンダリング処理へ流して入力画面を再表示
 
     display_items = [
         {
@@ -113,3 +124,41 @@ def order_history(request: HttpRequest) -> HttpResponse:
         .order_by("-created_at")
     )
     return render(request, "shop/order_history.html", {"orders": orders})
+
+
+@login_required
+@require_POST  # 🛡️ セキュリティ: GETではなくPOSTを強制 [cite: 2026-02-21]
+def update_cart_item(request: HttpRequest, product_id: int) -> HttpResponse:
+    """カート内の商品数量を操作し、最新のカート状態を返す [cite: 2026-02-21]"""
+    cart: dict[str, int] = request.session.get("cart", {})
+    product_id_str = str(product_id)
+
+    if product_id_str in cart:
+        action = request.POST.get("action")  # POSTに変更 [cite: 2026-02-21]
+
+        try:
+            if action == "add":
+                # 🛡️ 在庫チェックロジックを入れる（MVP思考） [cite: 2026-02-21]
+                product = get_object_or_404(Product, id=product_id)
+                if product.stock <= cart[product_id_str]:
+                    raise ValidationError(f"{product.name}の在庫が足りません")
+                cart[product_id_str] += 1
+            elif action == "remove":
+                cart[product_id_str] -= 1
+            elif action == "delete":
+                cart[product_id_str] = 0
+
+            if cart[product_id_str] <= 0:
+                del cart[product_id_str]
+
+            request.session["cart"] = cart
+            request.session.modified = True
+
+        except ValidationError as e:
+            # 📢 品質保証: ユーザーにエラーを通知 [cite: 2026-02-21]
+            from django.contrib import messages
+
+            messages.error(request, str(e))
+
+    # 🚀 パフォーマンス: redirectを避け1回のリクエストで完結 [cite: 2026-02-21]
+    return checkout(request)
