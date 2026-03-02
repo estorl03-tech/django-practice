@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
-    "shop",  # ドメイン分割されたアプリ
+    "apps.shop",  # ドメイン分割されたアプリ
 ]
 
 MIDDLEWARE = [
