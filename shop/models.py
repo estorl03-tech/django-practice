@@ -1,4 +1,5 @@
-from typing import Any
+from decimal import Decimal
+from typing import TYPE_CHECKING, Any
 
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
@@ -6,7 +7,8 @@ from django.db import models
 
 
 class Product(models.Model):
-    """商品モデル: バリデーションとタイムスタンプを完備"""
+    if TYPE_CHECKING:
+        id: int
 
     name = models.CharField(max_length=200, verbose_name="商品名")
     description = models.TextField(blank=True, verbose_name="商品説明")
@@ -31,6 +33,15 @@ class Product(models.Model):
         verbose_name = "商品"
         verbose_name_plural = "商品一覧"
         ordering = ["-created_at"]
+
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(price__gte=0), name="price_not_negative"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(stock__gte=0), name="stock_not_negative"
+            ),
+        ]
 
     def __str__(self) -> str:
         return self.name
@@ -78,6 +89,10 @@ class OrderItem(models.Model):
     class Meta:
         verbose_name = "注文明細"
         verbose_name_plural = "注文明細一覧"
+
+    @property
+    def subtotal(self) -> Decimal:
+        return self.price * self.quantity
 
     def __str__(self) -> str:
         return f"{self.product.name} ({self.quantity})"

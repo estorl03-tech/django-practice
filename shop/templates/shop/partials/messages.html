@@ -1,0 +1,7 @@
+<div id="messages" hx-swap-oob="true">
+    {% for message in messages %}
+    <article class="{{ message.tags }}" style="margin-bottom: 0.5rem;">
+        {{ message }}
+    </article>
+    {% endfor %}
+</div>

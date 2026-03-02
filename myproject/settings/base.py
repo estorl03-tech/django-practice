@@ -2,9 +2,16 @@ import os
 from pathlib import Path
 
 import dj_database_url  # type: ignore
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+env = environ.Env(DEBUG=(bool, False), ALLOWED_HOSTS=(list, []))
+
+environ.Env.read_env(BASE_DIR / ".env")
+
+SECRET_KEY = env("SECRET_KEY")
 
 # --- セキュリティ ベストプラクティス ---
 # 1. SECRET_KEY は環境変数から読み込む（なければ適当な文字列）
