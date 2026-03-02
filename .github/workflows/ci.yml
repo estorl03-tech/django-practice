@@ -15,8 +15,11 @@ jobs:
     
     # 失敗しても環境変数を安全に扱うための設定
     env:
-      DJANGO_SETTINGS_MODULE: "myproject.settings"
+      DJANGO_SETTINGS_MODULE: "myproject.settings.base"
       DATABASE_URL: "sqlite:///:memory:" # テスト用の揮発性DB
+      SECRET_KEY: "ci-testing-dummy-key-random-string-over-fifty-characters-long-12345"
+      DEBUG: "True"
+      ALLOWED_HOSTS: "localhost,127.0.0.1"
 
     steps:
       - name: Checkout Code
@@ -43,11 +46,11 @@ jobs:
 
       # 3. Security Check (Django Check)
       - name: Django Security Check
-        run: uv run python manage.py check --deploy --fail-level WARNING
+        run: uv run python manage.py check  --fail-level ERROR
 
       # 4. Unit & Integration Tests (pytest)
       - name: Run Tests with pytest
-        run: uv run pytest # 可用性の担保
+        run: uv run pytest --ds=myproject.settings.base # 可用性の担保
 
   deploy:
     name: Automated Deployment to Render

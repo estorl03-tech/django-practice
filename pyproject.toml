@@ -7,6 +7,7 @@ requires-python = "==3.14.3"
 dependencies = [
     "dj-database-url>=3.1.2",
     "django>=6.0.2",
+    "django-environ>=0.13.0",
     "gunicorn>=25.1.0",
     "pillow>=12.1.1",
     "psycopg[binary]>=3.3.3",
@@ -33,7 +34,7 @@ exclude = ["**/migrations/*.py"]
 
 [tool.ruff.lint.isort]
 # インポート順を「Django標準 -> サードパーティ -> 自作アプリ」に自動整理するルール
-known-first-party = ["shop"]
+known-first-party = ["apps"]
 
 [tool.mypy]
 # 厳格な型チェックを有効化（SOLID/クリーンアーキテクチャの基本）
@@ -60,11 +61,11 @@ ignore_errors = true
 
 [tool.django-stubs]
 # ここを settings.py があるフォルダ名に合わせる（例: "myproject.settings"）
-django_settings_module = "myproject.settings"
+django_settings_module = "myproject.settings.base"
 
 [tool.pytest.ini_options]
 # テスト実行時の設定。ここもフォルダ名を合わせる
-DJANGO_SETTINGS_MODULE = "myproject.settings"
+DJANGO_SETTINGS_MODULE = "myproject.settings.base"
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
 # これを追記（厳格なチェック、DB再利用、マイグレーション省略による高速化）
 addopts = "--strict-markers --no-migrations --reuse-db"

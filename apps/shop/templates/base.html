@@ -15,7 +15,6 @@
             border-radius: 8px;
         }
 
-        /* Djangoのmessage.tags (error, success, warning) に対応 [cite: 2026-02-21] */
         .error {
             border-left: 6px solid #d81b60;
             background-color: #fce4ec;
@@ -33,6 +32,12 @@
             background-color: #fff9c4;
             color: #f57f17;
         }
+
+        /* ユーザー名表示の微調整 */
+        .user-greeting {
+            font-size: 0.9rem;
+            margin-right: 10px;
+        }
     </style>
 </head>
 
@@ -42,7 +47,20 @@
             <li><strong><a href="{% url 'shop:product_list' %}" class="contrast">Gemini Shop</a></strong></li>
         </ul>
         <ul>
+            {% if user.is_authenticated %}
+            <li><span class="user-greeting">👤 <strong>{{ user.username }}</strong> 様</span></li>
             <li><a href="{% url 'shop:order_history' %}" class="secondary">注文履歴</a></li>
+            <li>
+                <form action="{% url 'logout' %}" method="post" style="display:inline; margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="outline secondary"
+                        style="font-size: 0.8rem; padding: 4px 8px; margin:0;">ログアウト</button>
+                </form>
+            </li>
+            {% else %}
+            <li><a href="{% url 'login' %}" class="secondary">ログイン</a></li>
+            {% endif %}
+
             <li>
                 <a href="{% url 'shop:checkout' %}" class="secondary" id="cart-link">
                     🛒 カート <span id="cart-count" class="badge">{{ cart_count|default:0 }}</span>
@@ -50,25 +68,18 @@
             </li>
             <li>
                 <a href="{% url 'shop:empty_cart' %}" class="outline secondary"
-                    style="font-size: 0.8rem; border-color: transparent;">カートを空にする</a>
+                    style="font-size: 0.8rem; border-color: transparent;">🗑️</a>
             </li>
         </ul>
     </nav>
 
     <main class="container">
-        {% if messages %}
-        <div id="messages" hx-history-elt>
-            {% for message in messages %}
-            <article class="{{ message.tags }}">
-                {{ message }}
-            </article>
-            {% endfor %}
+        <div id="messages-container">
+            {% include "shop/partials/messages.html" %}
         </div>
-        {% endif %}
 
         {% block content %}{% endblock %}
     </main>
-
 </body>
 
 </html>
