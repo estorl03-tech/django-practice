@@ -34,7 +34,7 @@ exclude = ["**/migrations/*.py"]
 
 [tool.ruff.lint.isort]
 # インポート順を「Django標準 -> サードパーティ -> 自作アプリ」に自動整理するルール
-known-first-party = ["shop"]
+known-first-party = ["apps"]
 
 [tool.mypy]
 # 厳格な型チェックを有効化（SOLID/クリーンアーキテクチャの基本）
