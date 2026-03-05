@@ -12,5 +12,9 @@ db.sqlite3
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
-media/
 .env
+
+# Media files
+# 基本的に media は無視するが、商品画像 (products) だけは管理対象にする
+media/*
+!media/products/

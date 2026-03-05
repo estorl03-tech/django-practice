@@ -163,6 +163,11 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# --- WhiteNoise でメディアファイルも配信するための追加設定 ---
+WHITENOISE_INDEX_FILE = True  # index.html 以外も対象にする
+# 本番環境で実行時に収集されたメディアを WhiteNoise に認識させるお守り
+WHITENOISE_KEEP_FILES_ON_DISK = True
+
 # --- 認証リダイレクト設定 ---
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"

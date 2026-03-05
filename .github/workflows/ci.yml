@@ -34,7 +34,7 @@ jobs:
         run: uv python install 3.14.3
 
       - name: Install Dependencies
-        run: uv sync --all-groups # 依存関係管理の徹底
+        run: uv sync --frozen --all-groups # 依存関係管理の徹底
 
       # 1. Lint / 静的解析 (Ruff)
       - name: Lint with Ruff
