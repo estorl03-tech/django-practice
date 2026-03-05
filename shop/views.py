@@ -1,3 +1,5 @@
+from typing import Any, Dict, cast
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -32,10 +34,11 @@ def product_list(request: HttpRequest) -> HttpResponse:
 def add_to_cart(request: HttpRequest, product_id: int) -> HttpResponse:
     """カートに追加（投入時の在庫チェック付き） [cite: 2026-02-21]"""
     product = get_object_or_404(Product, id=product_id)
-    cart = request.session.get("cart", {})
+    # 型ヒントを明示して Pylance の Unknown を回避
+    cart: Dict[str, int] = request.session.get("cart", {})
     current_qty = cart.get(str(product_id), 0)
 
-    # 🛡️ 在庫判定: 投入前にクイックチェック
+    # 🛡️ 在庫判定
     if current_qty + 1 > product.stock:
         available_qty = product.stock - current_qty
         messages.error(
@@ -45,7 +48,6 @@ def add_to_cart(request: HttpRequest, product_id: int) -> HttpResponse:
         if request.headers.get("HX-Request"):
             current_total = get_cart_count(request.session)
             msg_html = render_to_string("shop/partials/messages.html", request=request)
-            # 🚀 修正: カート数もID指定でOOB上書き
             cart_html = (
                 f'<span id="cart-count" hx-swap-oob="true">{current_total}</span>'
             )
@@ -58,7 +60,6 @@ def add_to_cart(request: HttpRequest, product_id: int) -> HttpResponse:
 
     if request.headers.get("HX-Request"):
         msg_html = render_to_string("shop/partials/messages.html", request=request)
-        # 🚀 修正: カート数もID指定でOOB上書き
         cart_html = f'<span id="cart-count" hx-swap-oob="true">{total_quantity}</span>'
         return HttpResponse(msg_html + cart_html)
 
@@ -68,23 +69,18 @@ def add_to_cart(request: HttpRequest, product_id: int) -> HttpResponse:
 @login_required
 def checkout(request: HttpRequest) -> HttpResponse:
     """チェックアウト・注文確定 (Thin View) [cite: 2026-02-21]"""
-    user = request.user
-    if not isinstance(user, User):
-        return redirect("login")
+    # User 型であることを Pylance に確信させる
+    user = cast(User, request.user)
 
     # 1. サービス層からデータを取得
     cart_items, total_price, cart_count = get_cart_details(request.session)
 
-    # 2. 注文確定処理（ボタン名 'submit_order' がある時だけ実行）
+    # 2. 注文確定処理
     if request.method == "POST" and "submit_order" in request.POST and cart_items:
-        if not request.user.is_authenticated:
-            # ログインしていない場合はログイン画面へ（nextパラメータ付き）
-            messages.info(request, "注文を完了するにはログインが必要です。")
-            return redirect(f"/accounts/login/?next={request.path}")
-
         try:
             create_order(user, cart_items, total_price)
             request.session["cart"] = {}
+            request.session.modified = True
             messages.success(request, "注文が完了しました！")
 
             if request.headers.get("HX-Request"):
@@ -105,24 +101,20 @@ def checkout(request: HttpRequest) -> HttpResponse:
             messages.error(request, msg)
 
     # 3. レンダリング用コンテキスト
-    context = {
+    context: Dict[str, Any] = {
         "cart_items": cart_items,
         "total_price": total_price,
         "cart_count": cart_count,
     }
 
-    # 修正ポイント: HTMXリクエストの場合は、切り出した partials/cart_details.html を使う
     if request.headers.get("HX-Request"):
-        # cart_table.html から実在する cart_details.html に変更
         table_html = render_to_string(
             "shop/partials/cart_details.html", context, request=request
         )
         msg_html = render_to_string("shop/partials/messages.html", request=request)
-        # 右上の数字も同期させる
         cart_count_html = (
             f'<span id="cart-count" hx-swap-oob="true">{cart_count}</span>'
         )
-
         return HttpResponse(table_html + msg_html + cart_count_html)
 
     return render(request, "shop/checkout.html", context)
@@ -131,7 +123,7 @@ def checkout(request: HttpRequest) -> HttpResponse:
 @require_POST
 def update_cart_item(request: HttpRequest, product_id: int) -> HttpResponse:
     """カート内数量を操作し、結果を返す [cite: 2026-02-21]"""
-    cart: dict[str, int] = request.session.get("cart", {})
+    cart: Dict[str, int] = request.session.get("cart", {})
     product_id_str = str(product_id)
 
     if product_id_str in cart:
@@ -158,16 +150,15 @@ def update_cart_item(request: HttpRequest, product_id: int) -> HttpResponse:
         except ValidationError as e:
             messages.error(request, str(e))
 
-    # 🚀 再計算とレンダリングを checkout に委譲 (DRY原則)
     return checkout(request)
 
 
 @login_required
 def order_history(request: HttpRequest) -> HttpResponse:
     """注文履歴を表示"""
-    assert isinstance(request.user, User)
+    user = cast(User, request.user)
     orders = (
-        Order.objects.filter(user=request.user)
+        Order.objects.filter(user=user)
         .prefetch_related("items__product")
         .order_by("-created_at")
     )
