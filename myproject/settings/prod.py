@@ -25,6 +25,9 @@ MEDIA_URL = "/media/"
 # 静的ファイルの配信設定
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+WHITENOISE_INDEX_FILE = True
+WHITENOISE_USE_FINDERS = True
+
 # 本番のセキュリティ設定
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
