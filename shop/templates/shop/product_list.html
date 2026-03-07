@@ -27,11 +27,10 @@
                 overflow: hidden;
             ">
                 {% if product.image %}
-                {# 1. 静的ファイルのルートパスから直接 ID 指定で画像を取得します #}
-                {# 拡張子が .jpg の場合は、下の .webp を .jpg に書き換えてください #}
+                {# 1.webp -> 1.jpg -> 1.png の順に自動で探しに行く設定です #}
                 <img src="/static/images/products/{{ product.id }}.webp"
-                    onerror="this.src='/static/images/products/{{ product.id }}.jpg';" alt="{{ product.name }}"
-                    style="width: 100%; height: 100%; object-fit: contain; border-radius: 0;">
+                    onerror="this.onerror=null; this.src='/static/images/products/{{ product.id }}.jpg'; this.setAttribute('onerror', 'this.src=\'/static/images/products/{{ product.id }}.png\'');"
+                    alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: contain; border-radius: 0;">
                 {% else %}
                 <div style="color: var(--pico-muted-color); font-size: 0.8rem;">No Image</div>
                 {% endif %}
