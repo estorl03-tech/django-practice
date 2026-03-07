@@ -6,8 +6,10 @@ from .base import *  # noqa: F403
 
 DEBUG = False
 
-render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
-ALLOWED_HOSTS = [render_host] if render_host else ["*"]
+ALLOWED_HOSTS = ["*"]
+
+# render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+# ALLOWED_HOSTS = [render_host] if render_host else ["*"]
 
 # --- 静的ファイルの設定 ---
 # noqa: F405 を末尾につけることで、その行の警告だけを無視させます
@@ -29,7 +31,7 @@ WHITENOISE_INDEX_FILE = True
 WHITENOISE_USE_FINDERS = True
 
 # 本番のセキュリティ設定
-SECURE_SSL_REDIRECT = True
+SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
