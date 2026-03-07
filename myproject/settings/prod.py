@@ -17,6 +17,11 @@ if "MIDDLEWARE" in globals():
 if "BASE_DIR" in globals():
     STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # noqa: F405
 
+    MEDIA_ROOT = os.path.join(BASE_DIR, "media")  # noqa: F405
+
+
+MEDIA_URL = "/media/"
+
 # 静的ファイルの配信設定
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
