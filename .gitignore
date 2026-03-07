@@ -16,6 +16,6 @@ db.sqlite3
 
 # Media files
 # 基本的に media は無視するが、商品画像 (products) だけは管理対象にする
-media/**/*
+media/*
 !media/products/
 !media/products/**
