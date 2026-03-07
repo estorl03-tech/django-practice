@@ -27,7 +27,8 @@
                 overflow: hidden;
             ">
                 {% if product.image %}
-                {# エラーの原因だった複雑な JS を削除し、ID指定のパスのみにします #}
+                {# JSを使わず、IDに基づいた固定のパスのみを指定します #}
+                {# 実際のファイルの拡張子が .jpg なら、下の .webp を .jpg に書き換えてください #}
                 <img src="{% static 'images/products/' %}{{ product.id }}.webp" alt="{{ product.name }}"
                     style="width: 100%; height: 100%; object-fit: contain; border-radius: 0;">
                 {% else %}
