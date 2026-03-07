@@ -27,7 +27,7 @@
                 overflow: hidden;
             ">
                 {% if product.image %}
-                {# エラー回避のため、最もシンプルなstatic参照に修正 #}
+                {# 【ここが核心】media URLを使わず、無理やりstaticフォルダを見に行かせます #}
                 <img src="{% static 'images/products/' %}{{ product.image.name|cut:'products/' }}"
                     alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: contain; border-radius: 0;">
                 {% else %}
@@ -41,7 +41,7 @@
                 <div style="
                     font-size: 0.75rem; 
                     color: var(--pico-secondary-color); 
-                    margin: 0; 
+                    margin: 0.5rem 0; 
                     line-height: 1.4;
                     display: -webkit-box;
                     -webkit-line-clamp: 4;
@@ -53,8 +53,7 @@
                     {{ product.catch_copy }}{% if product.catch_copy %}<br>{% endif %}{{ product.description }}
                 </div>
 
-                <div
-                    style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
                     <strong style="color: var(--pico-primary); font-size: 1.1rem;">
                         ¥{{ product.price|floatformat:0|intcomma }}
                     </strong>
