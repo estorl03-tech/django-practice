@@ -27,7 +27,7 @@
                 overflow: hidden;
             ">
                 {% if product.image %}
-                {# 【ここが核心】media URLを使わず、無理やりstaticフォルダを見に行かせます #}
+                {# JSを使わず、Djangoのタグだけで静的ファイルのパスを組み立てる #}
                 <img src="{% static 'images/products/' %}{{ product.image.name|cut:'products/' }}"
                     alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: contain; border-radius: 0;">
                 {% else %}
