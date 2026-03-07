@@ -27,9 +27,10 @@
                 overflow: hidden;
             ">
                 {% if product.image %}
-                {# JSを使わず、IDに基づいた固定のパスのみを指定します #}
-                {# 実際のファイルの拡張子が .jpg なら、下の .webp を .jpg に書き換えてください #}
-                <img src="{% static 'images/products/' %}{{ product.id }}.webp" alt="{{ product.name }}"
+                {# 1. 静的ファイルのルートパスから直接 ID 指定で画像を取得します #}
+                {# 拡張子が .jpg の場合は、下の .webp を .jpg に書き換えてください #}
+                <img src="/static/images/products/{{ product.id }}.webp"
+                    onerror="this.src='/static/images/products/{{ product.id }}.jpg';" alt="{{ product.name }}"
                     style="width: 100%; height: 100%; object-fit: contain; border-radius: 0;">
                 {% else %}
                 <div style="color: var(--pico-muted-color); font-size: 0.8rem;">No Image</div>
