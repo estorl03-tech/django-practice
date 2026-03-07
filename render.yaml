@@ -4,15 +4,15 @@ services:
     env: python
     plan: free
     region: singapore
-    # 修正ポイント: python manage.py を明示し、migrateもビルド時に終わらせる
+    # ★ 修正ポイント: python manage.py をセットで書く
     buildCommand: "uv sync --frozen && uv run python manage.py collectstatic --no-input && uv run python manage.py migrate"
-    # 修正ポイント: 起動コマンドはアプリの立ち上げだけに集中させる
+    # ★ 修正ポイント: 起動を速くするため、ここも python を明示
     startCommand: "uv run gunicorn myproject.wsgi:application"
     envVars:
       - key: PYTHON_VERSION
         value: 3.14.3
       - key: DJANGO_SETTINGS_MODULE
-        value: myproject.settings
+        value: myproject.settings.production  # 本番用の設定があればこちら
       - key: PYTHONPATH
         value: "."
       - key: UV_SYSTEM_PYTHON
