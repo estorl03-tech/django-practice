@@ -21,8 +21,3 @@ services:
         value: "True"
       - key: ALLOWED_HOSTS
         value: "*.onrender.com"
-
-databases:
-  - name: my-database
-    plan: free
-    region: singapore
