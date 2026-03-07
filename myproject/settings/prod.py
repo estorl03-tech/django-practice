@@ -7,30 +7,33 @@ from .base import *  # noqa: F403
 DEBUG = False
 ALLOWED_HOSTS = ["*"]
 
-# --- 静的ファイル・配信設定 ---
-# Ruffの警告(F405)を抑制しつつMIDDLEWAREにWhiteNoiseを挿入
+# --- MIDDLEWARE設定 (WhiteNoiseの挿入) ---
 try:
+    # Python 3 の正しい例外キャッチ構文に修正
     if "whitenoise.middleware.WhiteNoiseMiddleware" not in MIDDLEWARE:  # noqa: F405
         MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")  # noqa: F405
-except NameError:
-    # MIDDLEWAREが定義されていない場合の安全策
+except NameError, AttributeError:
+    # MIDDLEWAREが定義されていない場合のフォールバック
     MIDDLEWARE = [
         "django.middleware.security.SecurityMiddleware",
         "whitenoise.middleware.WhiteNoiseMiddleware",
         "django.middleware.common.CommonMiddleware",
+        "django.middleware.csrf.CsrfViewMiddleware",
+        "django.contrib.sessions.middleware.SessionMiddleware",
+        "django.contrib.auth.middleware.AuthenticationMiddleware",
+        "django.contrib.messages.middleware.MessageMiddleware",
     ]
 
-if "BASE_DIR" in globals() or "BASE_DIR" in locals():
-    # 配信用の集約先
-    STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # noqa: F405
+# --- 静的ファイル設定 (BASE_DIRの安全な取得) ---
+# globals()から取得し、パス計算でのエラーを物理的に防ぎます
+current_base_dir = globals().get("BASE_DIR")
 
-    # 修正：'static' フォルダを読み込ませる
-    STATICFILES_DIRS = [
-        os.path.join(BASE_DIR, "static"),  # noqa: F405
-    ]
-
-# 配信用のストレージ設定
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+if current_base_dir:
+    STATIC_ROOT = os.path.join(current_base_dir, "staticfiles")
+    # ls で確認した static フォルダを読み込み対象にします
+    STATICFILES_DIRS = [os.path.join(current_base_dir, "static")]
+    # ストレージ設定
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # データベース設定
 DATABASES = {"default": dj_database_url.config(conn_max_age=600)}
