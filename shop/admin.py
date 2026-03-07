@@ -24,7 +24,7 @@ class ProductAdmin(ProductAdminBase):
     - list_editable により一覧画面からクイック編集が可能
     """
 
-    list_display = ["name", "price", "stock", "is_active", "created_at"]
+    list_display = ["id", "name", "price", "stock", "is_active", "created_at"]
     list_filter = ["is_active", "created_at"]
     list_editable = ["price", "stock", "is_active"]
     search_fields = ["name"]

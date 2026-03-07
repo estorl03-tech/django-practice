@@ -27,9 +27,9 @@
                 overflow: hidden;
             ">
                 {% if product.image %}
-                {# JSを使わず、Djangoのタグだけで静的ファイルのパスを組み立てる #}
-                <img src="{% static 'images/products/' %}{{ product.image.name|cut:'products/' }}"
-                    alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: contain; border-radius: 0;">
+                {# エラーの原因だった複雑な JS を削除し、ID指定のパスのみにします #}
+                <img src="{% static 'images/products/' %}{{ product.id }}.webp" alt="{{ product.name }}"
+                    style="width: 100%; height: 100%; object-fit: contain; border-radius: 0;">
                 {% else %}
                 <div style="color: var(--pico-muted-color); font-size: 0.8rem;">No Image</div>
                 {% endif %}
