@@ -9,27 +9,12 @@
 
     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
         {% for product in products %}
-        <article style="
-            margin: 0; 
-            padding: 0; 
-            display: flex; 
-            flex-direction: column; 
-            height: 100%;
-        ">
-            <header style="
-                padding: 0; 
-                margin: 0; 
-                background: transparent; 
-                border-bottom: 1px solid var(--pico-muted-border-color); 
-                height: 240px; 
-                display: flex; 
-                justify-content: center; 
-                align-items: center;
-                overflow: hidden;
-            ">
+        <article style="margin: 0; padding: 0; display: flex; flex-direction: column; height: 100%;">
+            <header
+                style="padding: 0; margin: 0; background: transparent; border-bottom: 1px solid var(--pico-muted-border-color); height: 240px; display: flex; justify-content: center; align-items: center; overflow: hidden;">
                 {% if product.image %}
-                {% cloudinary product.image width=400 height=400 crop="fill" f="auto" q="auto" style="width: 100%;
-                height: 100%; object-fit: contain; border-radius: 0;" alt=product.name %}
+                {% cloudinary product.image width=400 height=400 crop="fill" f="auto" q="auto"
+                style="width:100%;height:100%;object-fit:contain;border-radius:0;" alt=product.name %}
                 {% else %}
                 <div style="color: var(--pico-muted-color); font-size: 0.8rem;">No Image</div>
                 {% endif %}
@@ -37,30 +22,16 @@
 
             <div style="padding: 1rem; flex-grow: 1; display: flex; flex-direction: column;">
                 <h6 style="margin: 0; line-height: 1.2;">{{ product.name }}</h6>
-
-                <div style="
-                    font-size: 0.75rem; 
-                    color: var(--pico-secondary-color); 
-                    margin: 0.5rem 0; 
-                    line-height: 1.4;
-                    display: -webkit-box;
-                    -webkit-line-clamp: 4;
-                    line-clamp: 4;
-                    -webkit-box-orient: vertical;
-                    overflow: hidden;
-                    white-space: pre-line;
-                ">
+                <div
+                    style="font-size: 0.75rem; color: var(--pico-secondary-color); margin: 0.5rem 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line;">
                     {{ product.catch_copy }}{% if product.catch_copy %}<br>{% endif %}{{ product.description }}
                 </div>
-
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
                     <strong style="color: var(--pico-primary); font-size: 1.1rem;">
                         ¥{{ product.price|floatformat:0|intcomma }}
                     </strong>
                     <button class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; width: auto; margin: 0;"
-                        hx-post="{% url 'shop:add_to_cart' product.id %}" hx-target="#cart-count">
-                        追加
-                    </button>
+                        hx-post="{% url 'shop:add_to_cart' product.id %}" hx-target="#cart-count">追加</button>
                 </div>
             </div>
         </article>
