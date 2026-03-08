@@ -5,6 +5,7 @@ import dj_database_url
 from .base import *  # noqa: F403
 
 DEBUG = False
+
 ALLOWED_HOSTS = [".onrender.com", "localhost", "127.0.0.1"]
 
 # --- MIDDLEWARE設定 (WhiteNoiseの挿入) ---
@@ -34,6 +35,24 @@ if current_base_dir:
     STATICFILES_DIRS = [os.path.join(current_base_dir, "static")]
     # ストレージ設定
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME": os.environ.get("CLOUDINARY_CLOUD_NAME"),
+    "API_KEY": os.environ.get("CLOUDINARY_API_KEY"),
+    "API_SECRET": os.environ.get("CLOUDINARY_API_SECRET"),
+}
+
+# base.py の設定を壊さず、Cloudinary に必要なアプリを適切な順序で差し込む
+try:
+    if "cloudinary_storage" not in INSTALLED_APPS:  # noqa: F405
+        INSTALLED_APPS.insert(0, "cloudinary_storage")  # noqa: F405
+    if "cloudinary" not in INSTALLED_APPS:  # noqa: F405
+        INSTALLED_APPS.append("cloudinary")  # noqa: F405
+except NameError:
+    pass
+
+# メディアファイルの保存先を指定
+DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 # データベース設定
 DATABASES = {"default": dj_database_url.config(conn_max_age=600)}

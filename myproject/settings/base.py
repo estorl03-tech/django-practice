@@ -17,6 +17,10 @@ env = environ.Env(
     SENTRY_DSN=(str, ""),
     SECRET_KEY=(str, "django-insecure-key"),
     DATABASE_URL=(str, ""),
+    # Cloudinary 用のデフォルト設定を追加
+    CLOUDINARY_CLOUD_NAME=(str, ""),
+    CLOUDINARY_API_KEY=(str, ""),
+    CLOUDINARY_API_SECRET=(str, ""),
 )
 
 # .env ファイルの読み込み (12-factor app)
@@ -24,9 +28,8 @@ env_file = BASE_DIR / ".env"
 if env_file.exists():
     environ.Env.read_env(str(env_file))
 
-# --- 🚀 Sentry の初期化 ---
+# --- 🚀 Sentry の初期化 (省略なし) ---
 SENTRY_DSN: str = env.str("SENTRY_DSN")
-
 if SENTRY_DSN:
     sentry_sdk.init(
         dsn=SENTRY_DSN,
@@ -63,12 +66,14 @@ if os.environ.get("RENDER"):
 
 # --- アプリケーション定義 (モジュラモノリス設計) ---
 INSTALLED_APPS = [
+    "cloudinary_storage",  # staticfiles より前に配置（KISS原則）
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "cloudinary",  # 追加
     "django.contrib.humanize",
     "shop",
 ]
@@ -106,7 +111,6 @@ WSGI_APPLICATION = "myproject.wsgi.application"
 
 # --- 🛰️ データベース設定 (Supabase 接続強制ロジック) ---
 db_url_env: str = env.str("DATABASE_URL")
-
 if db_url_env and db_url_env.startswith("postgres"):
     print("🚀 DATABASE_URL detected: Using Supabase (PostgreSQL)")
     DATABASES: Dict[str, Any] = {
@@ -126,47 +130,44 @@ else:
         }
     }
 
-# --- パスワードバリデーション (Ruff 1行88文字制限 & Pylance 対策) ---
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": (
-            "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
-        )
-    },
-    {"NAME": ("django.contrib.auth.password_validation.MinimumLengthValidator")},
-    {"NAME": ("django.contrib.auth.password_validation.CommonPasswordValidator")},
-    {"NAME": ("django.contrib.auth.password_validation.NumericPasswordValidator")},
-]
+# --- Cloudinary 設定 (12-factor app) ---
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME": env.str("CLOUDINARY_CLOUD_NAME"),
+    "API_KEY": env.str("CLOUDINARY_API_KEY"),
+    "API_SECRET": env.str("CLOUDINARY_API_SECRET"),
+}
 
-# --- 国際化設定 ---
-LANGUAGE_CODE = "ja"
-TIME_ZONE = "Asia/Tokyo"
-USE_I18N = True
-USE_TZ = True
-
-# --- 静的ファイル設定 (WhiteNoise / WebP 最適化想定) ---
+# --- 静的ファイル & メディアファイル設定 (Django 6.0 準拠) ---
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-# Django 6.0 で推奨される新しいストレージクラス
+
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        # メディアファイルを Cloudinary に向ける
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
 
-# --- メディアファイル設定 ---
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
-
+# --- 国際化・パスワード設定 (省略なし) ---
+LANGUAGE_CODE = "ja"
+TIME_ZONE = "Asia/Tokyo"
+USE_I18N = True
+USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# --- WhiteNoise でメディアファイルも配信するための追加設定 ---
-WHITENOISE_INDEX_FILE = True  # index.html 以外も対象にする
-# 本番環境で実行時に収集されたメディアを WhiteNoise に認識させるお守り
-WHITENOISE_KEEP_FILES_ON_DISK = True
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": (
+            "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+        )
+    },
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
 
 # --- 認証リダイレクト設定 ---
 LOGIN_REDIRECT_URL = "/"

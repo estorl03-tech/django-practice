@@ -1,6 +1,7 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any
 
+from cloudinary.models import CloudinaryField
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -25,15 +26,18 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="作成日時")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="更新日時")
 
-    image = models.ImageField(
-        upload_to="products/", null=True, blank=True, verbose_name="商品画像"
+    # 引数重複エラー修正済み
+    image = CloudinaryField(
+        "商品画像",
+        folder="products",
+        null=True,
+        blank=True,
     )
 
     class Meta:
         verbose_name = "商品"
         verbose_name_plural = "商品一覧"
         ordering = ["-created_at"]
-
         constraints = [
             models.CheckConstraint(
                 condition=models.Q(price__gte=0), name="price_not_negative"
@@ -47,14 +51,7 @@ class Product(models.Model):
         return self.name
 
     def save(self, *args: Any, **kwargs: Any) -> None:
-        from django.db.models.fields.files import ImageFieldFile
-
-        if self.image and isinstance(self.image, ImageFieldFile):
-            # 前に書いた最適化ロジックを入れる（または一旦シンプルに保存）
-            super().save(*args, **kwargs)
-        else:
-            # 画像がない場合も保存処理が必要なため追加
-            super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 
 class Order(models.Model):
@@ -65,7 +62,6 @@ class Order(models.Model):
     status = models.CharField(
         max_length=20, default="pending", verbose_name="ステータス"
     )
-
     total_price = models.DecimalField(
         max_digits=10, decimal_places=0, default=0, verbose_name="合計金額"
     )
@@ -76,12 +72,11 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    """注文明細モデル: 購入時の価格を固定保存（ビジネス価値の保護）"""
+    """注文明細モデル: 購入時の価格を固定保存"""
 
     order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="商品")
     quantity = models.PositiveIntegerField(default=1, verbose_name="数量")
-    # 購入時の価格を記録することで、後で商品の値段が変わっても影響を受けないようにする
     price = models.DecimalField(
         max_digits=10, decimal_places=0, verbose_name="購入時価格"
     )
