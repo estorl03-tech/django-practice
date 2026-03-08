@@ -13,8 +13,12 @@
             <header
                 style="padding: 0; margin: 0; background: transparent; border-bottom: 1px solid var(--pico-muted-border-color); height: 240px; display: flex; justify-content: center; align-items: center; overflow: hidden;">
                 {% if product.image %}
-                {% cloudinary product.image width=400 height=400 crop="fill" f="auto" q="auto"
-                style="width:100%;height:100%;object-fit:contain;border-radius:0;" alt=product.name %}
+                {# fmt: off #}
+                {# djlint:off #}
+                {% with img=product.image %}{% cloudinary img width=400 height=400 crop="fill" f="auto" q="auto"
+                style="width:100%;height:100%;object-fit:contain;border-radius:0;" alt=product.name %}{% endwith %}
+                {# djlint:on #}
+                {# fmt: on #}
                 {% else %}
                 <div style="color: var(--pico-muted-color); font-size: 0.8rem;">No Image</div>
                 {% endif %}
