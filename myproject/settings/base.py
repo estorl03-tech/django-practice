@@ -141,17 +141,22 @@ CLOUDINARY_STORAGE = {
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
 STORAGES = {
     "default": {
         # メディアファイルを Cloudinary に向ける
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
 
 WHITENOISE_MANIFEST_STRICT = False
+WHITENOISE_USE_FINDERS = True
 WHITENOISE_KEEP_FILES_ON_DISK = True
 
 # --- 国際化・パスワード設定 (省略なし) ---
