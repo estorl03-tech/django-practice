@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load static %}
-{% load cloudinary %} {# 1. Cloudinaryタグを読み込み #}
+{% load cloudinary %}
 
 {% block content %}
 <section>
@@ -28,8 +28,6 @@
                 overflow: hidden;
             ">
                 {% if product.image %}
-                {# 2. 固定パスとonerror地獄を捨て、Cloudinaryの最適化配信に切り替え #}
-                {# width/heightでリサイズ、f_autoでWebP化、q_autoで軽量化を同時に行います #}
                 {% cloudinary product.image width=400 height=400 crop="fill" f="auto" q="auto" style="width: 100%;
                 height: 100%; object-fit: contain; border-radius: 0;" alt=product.name %}
                 {% else %}
