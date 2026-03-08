@@ -5,7 +5,7 @@ import dj_database_url
 from .base import *  # noqa: F403
 
 DEBUG = False
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [".onrender.com", "localhost", "127.0.0.1"]
 
 # --- MIDDLEWARE設定 (WhiteNoiseの挿入) ---
 try:
