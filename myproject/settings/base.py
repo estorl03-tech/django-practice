@@ -8,7 +8,7 @@ import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
 # 1. パスの設定 (uv 環境のプロジェクト構造)
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 2. django-environ の初期設定 (Python 3.14.3 / Django 6.0.2 準拠)
 env = environ.Env(
@@ -49,12 +49,16 @@ ALLOWED_HOSTS: List[str] = env.list("ALLOWED_HOSTS")
 # --- 本番環境（Render等）特有の設定 ---
 if os.environ.get("RENDER"):
     DEBUG = False
+
+    ALLOWED_HOSTS.extend(["localhost", "127.0.0.1", ".onrender.com"])
+
     render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
     if render_host:
         ALLOWED_HOSTS.append(render_host)
 
     # セキュリティ ベストプラクティス
-    SECURE_SSL_REDIRECT = True
+    SECURE_SSL_REDIRECT = False
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 31536000
@@ -138,7 +142,7 @@ CLOUDINARY_STORAGE = {
 }
 
 # --- 静的ファイル & メディアファイル設定 (Django 6.0 準拠) ---
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STATICFILES_DIRS = [
@@ -167,11 +171,7 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": (
-            "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
-        )
-    },
+    {"NAME": ("django.contrib.auth.password_validation.UserAttributeSimilarityValidator")},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
