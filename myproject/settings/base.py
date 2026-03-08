@@ -147,11 +147,12 @@ STORAGES = {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 
 WHITENOISE_MANIFEST_STRICT = False
+WHITENOISE_KEEP_FILES_ON_DISK = True
 
 # --- 国際化・パスワード設定 (省略なし) ---
 LANGUAGE_CODE = "ja"
