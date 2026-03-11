@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<section>
+    <h2>商品一覧</h2>
+    
+    <div class="grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">
+        {% for product in products %}
+            <article>
+                <header style="padding: 0;">
+                    {# ✅ 正解: 親側で include を呼び出す。部品側には書かない。 #}
+                    {# メイン画像：LCP向上のため最優先で読み込む #}
+                    {% include "shop/partials/product_image.html" with image=product.image alt=product.name priority=True %}
+                </header>
+                
+                <h3>{{ product.name }}</h3>
+                <p>{{ product.price|intcomma }}円</p>
+
+                {# サムネイルが必要な場合もここで個別に呼び出す #}
+                <div class="thumbnails" style="display: flex; gap: 5px; margin-top: 10px;">
+                    {% for extra in product.extras.all %}
+                        {% include "shop/partials/product_image.html" with image=extra.image width=80 height=80 class="thumb-item" %}
+                    {% endfor %}
+                </div>
+
+                <footer>
+                    <a href="{% url 'shop:product_detail' product.id %}" class="button">詳細を見る</a>
+                </footer>
+            </article>
+        {% empty %}
+            <p>商品がありません。</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
