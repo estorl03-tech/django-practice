@@ -4,9 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gemini Portfolio Shop</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    
+    {# --- 🚀 パフォーマンス最適化: Preconnect --- #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://res.cloudinary.com">
+    <link rel="preconnect" href="https://unpkg.com">
+
+    {# --- 🎨 CSS: レンダリングを優先 --- #}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+
+    {# --- ⚡ JS: レンダリングをブロックしない (defer) --- #}
+    <script src="https://unpkg.com/htmx.org@2.0.0" defer></script>
+
     <style>
         /* --- 📏 ナビゲーション --- */
         nav { padding: 0.75rem 2vw !important; background-color: var(--pico-background-color); border-bottom: none !important; }
@@ -36,20 +47,17 @@
         .brand-logo span { font-weight: 400; color: var(--pico-muted-color); -webkit-text-fill-color: var(--pico-muted-color); }
         .brand-sparkle { font-size: 1.1rem; margin-right: 4px; }
 
-        /* --- 🛠️ 【商品説明：3行固定・チラ見え防止】 --- */
+        /* --- 🛠️ 商品説明：3行固定 --- */
         .product-description-text { 
             display: -webkit-box !important;
             -webkit-box-orient: vertical !important;
-            -webkit-line-clamp: 3 !important; /* 厳密に3行 */
+            -webkit-line-clamp: 3 !important;
             overflow: hidden !important;
             text-overflow: ellipsis !important;
-            
-            /* 行間1.4 * 3行 = 4.2em で箱をロック。これで4行目は絶対に見えない */
             line-height: 1.4 !important;
             height: 4.2em !important; 
             max-height: 4.2em !important;
             min-height: 4.2em !important; 
-
             text-indent: 0 !important; 
             text-align: left !important; 
             white-space: normal !important; 
@@ -96,6 +104,7 @@
                 <button hx-post="{% url 'shop:empty_cart' %}" 
                         hx-target="#cart-count" 
                         hx-swap="innerHTML"
+                        hx-indicator=".htmx-indicator"
                         class="outline secondary" 
                         style="font-size: 1.1rem; border: none; padding: 0.2rem; margin: 0; cursor: pointer; background: transparent; line-height: 1;">
                     🗑️

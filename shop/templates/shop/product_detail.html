@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "shop/base.html" %}
 {% load humanize %}
 {% load cloudinary %}
 
@@ -49,17 +49,24 @@
         flex-direction: column;
         gap: 1rem;
     }
-    .main-view img {
+    .main-view {
         width: 100%;
         aspect-ratio: 1;
-        object-fit: cover;
+        background: #1a1a1a; /* 読み込み前のプレースホルダー色 */
         border-radius: 6px;
-        background: transparent;
+        overflow: hidden;
+    }
+    .main-view img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
     }
     .thumbs-row {
         display: flex;
         gap: 10px;
         overflow-x: auto;
+        padding-bottom: 5px;
     }
     .thumb-item {
         width: 56px;
@@ -89,7 +96,7 @@
         color: #ddd;
     }
 
-    /* 購入ライン：さらに余白を詰める (margin-bottomを1rem -> 0.5remへ) */
+    /* 購入ライン */
     .purchase-line {
         display: flex;
         align-items: center;
@@ -105,7 +112,12 @@
         letter-spacing: -0.02em;
         color: #bbb;
     }
-    .add-cart-form { margin: 0; }
+    .add-cart-form { 
+        margin: 0; 
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
     .cart-btn {
         width: auto;
         min-width: 160px;
@@ -116,7 +128,7 @@
         border-radius: 4px;
     }
 
-    /* 説明文エリア：上部余白を徹底的に詰める */
+    /* 説明文エリア */
     .description-scroll {
         flex-grow: 1;
         overflow-y: auto;
@@ -129,10 +141,22 @@
 
     .description-content {
         font-size: 0.85rem;
-        line-height: 1.7; /* 少し詰め気味にして読みのリズムを作る */
-        color: #d1d1d1; /* 視認性を確保しつつ浮かび上がらせる */
-        padding-top: 0; /* 上の余白を完全にゼロに */
+        line-height: 1.7;
+        color: #d1d1d1;
+        padding-top: 0.5rem;
         padding-bottom: 2rem;
+    }
+
+    /* HTMX インジケーター */
+    .htmx-indicator {
+        display: none;
+    }
+    .htmx-request .htmx-indicator {
+        display: inline-block;
+    }
+    .htmx-request.cart-btn {
+        opacity: 0.7;
+        pointer-events: none;
     }
 
     /* モバイル対応 */
@@ -158,21 +182,27 @@
         <div class="image-pane">
             <div id="main-display" class="main-view">
                 {% if product.image %}
-                    <img src="{% cloudinary_url product.image width=800 height=800 crop='fill' %}" alt="{{ product.name }}">
+                    {# LCP 最適化: fetchpriority="high" と decoding="async" を追加 #}
+                    <img src="{% cloudinary_url product.image width=800 height=800 crop='fill' quality='auto' fetch_format='auto' %}" 
+                         alt="{{ product.name }}"
+                         fetchpriority="high"
+                         decoding="async">
                 {% endif %}
             </div>
             <div class="thumbs-row">
                 {% if product.image %}
-                <img src="{% cloudinary_url product.image width=150 height=150 crop='fill' %}" 
+                <img src="{% cloudinary_url product.image width=150 height=150 crop='fill' quality='auto' fetch_format='auto' %}" 
                      class="thumb-item" 
-                     hx-get="{% url 'shop:load_image' %}?image_url={% cloudinary_url product.image width=800 height=800 crop='fill' %}" 
-                     hx-target="#main-display">
+                     hx-get="{% url 'shop:load_image' %}?image_url={% cloudinary_url product.image width=800 height=800 crop='fill' quality='auto' fetch_format='auto' %}" 
+                     hx-target="#main-display"
+                     alt="thumbnail">
                 {% endif %}
                 {% for extra in product.additional_images.all %}
-                <img src="{% cloudinary_url extra.image width=150 height=150 crop='fill' %}" 
+                <img src="{% cloudinary_url extra.image width=150 height=150 crop='fill' quality='auto' fetch_format='auto' %}" 
                      class="thumb-item" 
-                     hx-get="{% url 'shop:load_image' %}?image_url={% cloudinary_url extra.image width=800 height=800 crop='fill' %}" 
-                     hx-target="#main-display">
+                     hx-get="{% url 'shop:load_image' %}?image_url={% cloudinary_url extra.image width=800 height=800 crop='fill' quality='auto' fetch_format='auto' %}" 
+                     hx-target="#main-display"
+                     alt="thumbnail">
                 {% endfor %}
             </div>
         </div>
@@ -182,9 +212,13 @@
 
             <div class="purchase-line">
                 <div class="price-tag">¥{{ product.price|floatformat:0|intcomma }}</div>
-                <form hx-post="{% url 'shop:add_to_cart' product.id %}" hx-target="#cart-count" class="add-cart-form">
+                <form hx-post="{% url 'shop:add_to_cart' product.id %}" 
+                      hx-target="#cart-count" 
+                      hx-indicator=".htmx-indicator"
+                      class="add-cart-form">
                     {% csrf_token %}
                     <button type="submit" class="cart-btn">カートに追加</button>
+                    <span class="htmx-indicator" aria-busy="true"></span>
                 </form>
             </div>
 
