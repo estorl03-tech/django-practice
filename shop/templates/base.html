@@ -1,85 +1,143 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gemini Portfolio Shop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <script src="https://unpkg.com/htmx.org@2.0.0"></script>
     <style>
-        /* 保守性: Pico.cssの変数を活用したメッセージ装飾 [cite: 2026-02-21] */
-        #messages article {
-            margin-bottom: 1.5rem;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
+        /* --- 📏 ナビゲーション --- */
+        nav { padding: 0.75rem 2vw !important; background-color: var(--pico-background-color); border-bottom: none !important; }
+        nav ul { display: flex; align-items: center !important; margin: 0; padding: 0; list-style: none; }
+        nav ul li { padding: 0 0.35rem !important; display: flex; align-items: center !important; }
+        nav ul li form { margin: 0; display: flex; align-items: center; }
+        nav ul li button.outline { margin: 0 !important; height: 1.8rem !important; padding: 0 0.6rem !important; font-size: 0.75rem !important; line-height: 1 !important; }
+
+        /* --- 🍤 アニメーション --- */
+        @keyframes cart-bump {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.3) translateY(-5px) rotate(-3deg); color: #9b72cb !important; }
+            50% { transform: scale(0.95) rotate(3deg); }
+            80% { transform: scale(1.05); }
+            100% { transform: scale(1) rotate(0); }
+        }
+        .cart-bump { display: inline-flex !important; animation: cart-bump 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) !important; }
+        #cart-link { display: flex; align-items: center; text-decoration: none; gap: 4px; transition: color 0.3s ease; }
+
+        /* --- ✉️ メッセージ --- */
+        #messages-container { position: absolute; top: 100%; right: 0; z-index: 1000; width: max-content; pointer-events: none; padding-top: 0.5rem; }
+        #messages article { pointer-events: auto; margin-bottom: 0.3rem; padding: 0.4rem 0.8rem !important; font-size: 0.7rem; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); background-color: var(--pico-card-background-color); border: 1px solid var(--pico-muted-border-color); border-left: 4px solid #d96570; animation: dropDown 0.3s ease-out; max-width: 200px; }
+        @keyframes dropDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* --- 💎 ロゴ --- */
+        .brand-logo { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.5rem; letter-spacing: -1px; background: linear-gradient(135deg, #4285F4 0%, #9b72cb 50%, #d96570 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block; line-height: 1; }
+        .brand-logo span { font-weight: 400; color: var(--pico-muted-color); -webkit-text-fill-color: var(--pico-muted-color); }
+        .brand-sparkle { font-size: 1.1rem; margin-right: 4px; }
+
+        /* --- 🛠️ 【商品説明：3行固定・チラ見え防止】 --- */
+        .product-description-text { 
+            display: -webkit-box !important;
+            -webkit-box-orient: vertical !important;
+            -webkit-line-clamp: 3 !important; /* 厳密に3行 */
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            
+            /* 行間1.4 * 3行 = 4.2em で箱をロック。これで4行目は絶対に見えない */
+            line-height: 1.4 !important;
+            height: 4.2em !important; 
+            max-height: 4.2em !important;
+            min-height: 4.2em !important; 
+
+            text-indent: 0 !important; 
+            text-align: left !important; 
+            white-space: normal !important; 
+            overflow-wrap: break-word !important; 
+            word-break: break-all !important; 
         }
 
-        .error {
-            border-left: 6px solid #d81b60;
-            background-color: #fce4ec;
-            color: #880e4f;
-        }
-
-        .success {
-            border-left: 6px solid #43a047;
-            background-color: #e8f5e9;
-            color: #1b5e20;
-        }
-
-        .warning {
-            border-left: 6px solid #fbc02d;
-            background-color: #fff9c4;
-            color: #f57f17;
-        }
-
-        /* ユーザー名表示の微調整 */
-        .user-greeting {
-            font-size: 0.9rem;
-            margin-right: 10px;
+        main article, .product-card {
+            min-width: 0 !important;
+            height: auto !important;
+            min-height: 0 !important;
         }
     </style>
 </head>
-
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-    <nav class="container">
+    <nav>
         <ul>
-            <li><strong><a href="{% url 'shop:product_list' %}" class="contrast">Gemini Shop</a></strong></li>
+            <li>
+                <a href="{% url 'shop:product_list' %}" style="text-decoration: none; display: flex; align-items: center;">
+                    <span class="brand-sparkle">✨</span>
+                    <div class="brand-logo">Gemini<span>Shop</span></div>
+                </a>
+            </li>
         </ul>
         <ul>
             {% if user.is_authenticated %}
-            <li><span class="user-greeting">👤 <strong>{{ user.username }}</strong> 様</span></li>
-            <li><a href="{% url 'shop:order_history' %}" class="secondary">注文履歴</a></li>
+            <li><span class="user-greeting" style="font-size: 0.85rem;">👤 <strong>{{ user.username }}</strong> 様</span></li>
+            <li><a href="{% url 'shop:order_history' %}" class="secondary" style="font-size: 0.85rem;">注文履歴</a></li>
             <li>
-                <form action="{% url 'logout' %}" method="post" style="display:inline; margin:0;">
+                <form action="{% url 'logout' %}" method="post">
                     {% csrf_token %}
-                    <button type="submit" class="outline secondary"
-                        style="font-size: 0.8rem; padding: 4px 8px; margin:0;">ログアウト</button>
+                    <button type="submit" class="outline secondary">ログアウト</button>
                 </form>
             </li>
             {% else %}
             <li><a href="{% url 'login' %}" class="secondary">ログイン</a></li>
             {% endif %}
-
             <li>
-                <a href="{% url 'shop:checkout' %}" class="secondary" id="cart-link">
+                <a href="{% url 'shop:checkout' %}" class="secondary" id="cart-link" style="font-size: 0.85rem;">
                     🛒 カート <span id="cart-count" class="badge">{{ cart_count|default:0 }}</span>
                 </a>
             </li>
-            <li>
-                <a href="{% url 'shop:empty_cart' %}" class="outline secondary"
-                    style="font-size: 0.8rem; border-color: transparent;">🗑️</a>
+            <li style="position: relative;">
+                <button hx-post="{% url 'shop:empty_cart' %}" 
+                        hx-target="#cart-count" 
+                        hx-swap="innerHTML"
+                        class="outline secondary" 
+                        style="font-size: 1.1rem; border: none; padding: 0.2rem; margin: 0; cursor: pointer; background: transparent; line-height: 1;">
+                    🗑️
+                </button>
+                <div id="messages-container">{% include "shop/partials/messages.html" %}</div>
             </li>
         </ul>
     </nav>
 
     <main class="container">
-        <div id="messages-container">
-            {% include "shop/partials/messages.html" %}
-        </div>
-
         {% block content %}{% endblock %}
     </main>
-</body>
 
+    <script>
+        (function() {
+            const applyBump = () => {
+                const el = document.getElementById('cart-link');
+                if (el) {
+                    el.classList.remove('cart-bump');
+                    void el.offsetWidth;
+                    el.classList.add('cart-bump');
+                }
+            };
+            const cleanupMessages = () => {
+                const msgs = document.querySelectorAll('#messages article');
+                msgs.forEach(m => {
+                    m.style.transition = "opacity 0.4s ease, transform 0.4s ease";
+                    m.style.opacity = "0";
+                    m.style.transform = "translateY(-5px)";
+                    setTimeout(() => m.remove(), 400);
+                });
+            };
+            document.body.addEventListener('htmx:afterSwap', (evt) => {
+                if (evt.detail.target.id === 'cart-count' || evt.detail.target.querySelector('#cart-count')) applyBump();
+                if (evt.detail.target.id === 'messages-container' || evt.detail.xhr.responseText.includes('messages')) setTimeout(cleanupMessages, 2500);
+            });
+            document.body.addEventListener('htmx:oobAfterSwap', (evt) => {
+                if (evt.detail.target.id === 'cart-count') applyBump();
+                if (evt.detail.target.id === 'messages-container') setTimeout(cleanupMessages, 2500);
+            });
+            setTimeout(cleanupMessages, 2500);
+        })();
+    </script>
+</body>
 </html>

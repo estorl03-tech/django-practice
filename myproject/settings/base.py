@@ -8,7 +8,7 @@ import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
 # 1. パスの設定 (uv 環境のプロジェクト構造)
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # 2. django-environ の初期設定 (Python 3.14.3 / Django 6.0.2 準拠)
 env = environ.Env(

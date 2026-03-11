@@ -2,34 +2,88 @@
 {% load humanize %}
 
 {% block content %}
-<article>
-    <h2>注文履歴</h2>
+<h2 style="margin-bottom: 1.5rem;">📦 注文履歴</h2>
 
-    {% if orders %}
-    {# 注文がある場合はループで表示 [cite: 2026-02-21] #}
-    {% for order in orders %}
-    <article style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem;">
-        <header>
-            <strong>注文日時:</strong> {{ order.created_at|date:"Y年m月d日 H:i" }}
-        </header>
-        <p><strong>合計金額:</strong> ¥{{ order.total_price|intcomma }}</p>
-        <p><strong>ステータス:</strong> {{ order.status }}</p>
+{% if orders %}
+    <div class="orders-list">
+        {% for order in orders %}
+        <details style="border: 1px solid var(--pico-muted-border-color); border-radius: 8px; margin-bottom: 0.75rem; padding: 0; overflow: hidden; background-color: var(--pico-background-color);">
+            <summary style="padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; list-style: none; cursor: pointer; transition: background-color 0.2s;">
+                <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: center; flex: 1;">
+                    <div>
+                        <small style="color: var(--pico-muted-color); display: block; font-size: 0.65rem;">注文日時</small>
+                        <strong style="font-size: 0.9rem;">{{ order.created_at|date:"Y/m/d H:i" }}</strong>
+                    </div>
+                    <div>
+                        <small style="color: var(--pico-muted-color); display: block; font-size: 0.65rem;">合計金額</small>
+                        <strong style="color: var(--pico-primary); font-size: 0.9rem;">¥{{ order.total_price|intcomma }}</strong>
+                    </div>
+                    <div>
+                        <small style="color: var(--pico-muted-color); display: block; font-size: 0.65rem;">状況</small>
+                        <span style="
+                            font-size: 0.7rem; 
+                            padding: 2px 8px; 
+                            border-radius: 4px;
+                            background-color: {% if order.status == 'pending' %}#fff3cd{% elif order.status == 'completed' %}#d1e7dd{% else %}#e2e3e5{% endif %};
+                            color: {% if order.status == 'pending' %}#856404{% elif order.status == 'completed' %}#0f5132{% else %}#383d41{% endif %};
+                            font-weight: bold;
+                        ">
+                            {% if order.status == 'pending' %}注文確認中
+                            {% elif order.status == 'completed' %}発送完了
+                            {% else %}{{ order.status }}{% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <div style="font-size: 0.8rem; color: var(--pico-muted-color); display: flex; align-items: center; gap: 4px;">
+                    <span>詳細</span>
+                    <span class="detail-arrow" style="display: inline-block; transition: transform 0.3s ease;">▾</span>
+                </div>
+            </summary>
 
-        {# 注文詳細（OrderItem）も表示したい場合はここに追加可能 [cite: 2026-02-21] #}
-        <details>
-            <summary>注文内容を表示</summary>
-            <ul>
-                {% for item in order.items.all %}
-                <li>{{ item.product.name }} × {{ item.quantity }}</li>
-                {% endfor %}
-            </ul>
+            <div style="padding: 0; border-top: 1px solid var(--pico-muted-border-color); background-color: var(--pico-card-sectioning-background-color);">
+                <table style="margin-bottom: 0; font-size: 0.85rem; width: 100%;">
+                    <thead>
+                        <tr style="background: rgba(0,0,0,0.02);">
+                            <th style="padding-left: 1rem;">商品名</th>
+                            <th style="text-align: right;">単価</th>
+                            <th style="text-align: center;">数量</th>
+                            <th style="text-align: right; padding-right: 1rem;">小計</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.items.all %}
+                        <tr>
+                            <td style="padding-left: 1rem;">{{ item.product.name }}</td>
+                            <td style="text-align: right;">¥{{ item.price|intcomma }}</td>
+                            <td style="text-align: center;">{{ item.quantity }}</td>
+                            <td style="text-align: right; padding-right: 1rem;">¥{{ item.get_cost|intcomma }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </details>
+        {% endfor %}
+    </div>
+{% else %}
+    <article style="text-align: center; padding: 3rem 1rem;">
+        <p>まだ注文履歴はありません。</p>
+        <a href="{% url 'shop:product_list' %}" role="button" class="outline">お買い物を続ける</a>
     </article>
-    {% endfor %}
-    {% else %}
-    {# 注文がない場合の表示 [cite: 2026-02-21] #}
-    <p>まだ注文履歴はありません。</p>
-    <a href="{% url 'shop:product_list' %}" role="button">買い物を続ける</a>
-    {% endif %}
-</article>
+{% endif %}
+
+<style>
+    /* 標準の矢印を消去 */
+    summary::-webkit-details-marker { display: none; }
+    summary { list-style: none; }
+    
+    /* ホバー時の背景色（ダークモード考慮） */
+    summary:hover { background-color: var(--pico-card-sectioning-background-color); }
+
+    /* ✅ 文字は回さず、矢印（.detail-arrow）だけを回す！ */
+    details[open] summary .detail-arrow {
+        transform: rotate(180deg);
+    }
+</style>
 {% endblock %}

@@ -52,15 +52,11 @@ def get_cart_count(session: dict[str, Any]) -> int:
     return sum(cart.values())
 
 
-def create_order(
-    user: User, cart_items: list[dict[str, Any]], total_price: Decimal
-) -> Order:
+def create_order(user: User, cart_items: list[dict[str, Any]], total_price: Decimal) -> Order:
     """注文作成: トランザクション・行ロック・Fクエリで整合性を保証 [cite: 2026-02-21]"""
     with transaction.atomic():
         # 🚀 cast 無しで Order が返ることが認識されています [cite: 2026-02-21]
-        order = Order.objects.create(
-            user=user, status="pending", total_price=total_price
-        )
+        order = Order.objects.create(user=user, status="pending", total_price=total_price)
 
         for item in cart_items:
             # 🚀 ここも cast 無しで Product として扱えます [cite: 2026-02-21]
@@ -69,9 +65,7 @@ def create_order(
             quantity = int(item["quantity"])
 
             if product.stock < quantity:
-                raise ValidationError(
-                    f"{product.name} の在庫が不足しています（残り: {product.stock}）"
-                )
+                raise ValidationError(f"{product.name} の在庫が不足しています（残り: {product.stock}）")
 
             OrderItem.objects.create(
                 order=order,

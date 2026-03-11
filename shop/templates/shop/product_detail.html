@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load cloudinary %}
+
+{% block content %}
+<style>
+    /* ベースレイアウト：画面に収め、無駄なスクロールを排除 */
+    .detail-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 1.5rem;
+        height: calc(100vh - 120px);
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* 戻るボタン */
+    .nav-header {
+        margin-bottom: 1.5rem;
+        flex-shrink: 0;
+    }
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #888;
+        text-decoration: none;
+        transition: 0.2s ease;
+    }
+    .back-btn:hover {
+        color: var(--pico-primary);
+        transform: translateX(-4px);
+    }
+
+    /* メイングリッド */
+    .product-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 3.5rem;
+        flex-grow: 1;
+        overflow: hidden;
+    }
+
+    /* 左：画像エリア */
+    .image-pane {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .main-view img {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        border-radius: 6px;
+        background: transparent;
+    }
+    .thumbs-row {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+    }
+    .thumb-item {
+        width: 56px;
+        height: 56px;
+        border-radius: 4px;
+        border: 1px solid var(--pico-muted-border-color);
+        object-fit: cover;
+        cursor: pointer;
+        opacity: 0.8;
+        transition: 0.2s;
+    }
+    .thumb-item:hover { opacity: 1; border-color: var(--pico-primary); }
+
+    /* 右：情報エリア */
+    .info-pane {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .product-name {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        line-height: 1.2;
+        color: #ddd;
+    }
+
+    /* 購入ライン：さらに余白を詰める (margin-bottomを1rem -> 0.5remへ) */
+    .purchase-line {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        margin-bottom: 0.5rem; 
+        padding-bottom: 1.2rem;
+        border-bottom: 1px solid var(--pico-muted-border-color);
+        flex-shrink: 0;
+    }
+    .price-tag {
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #bbb;
+    }
+    .add-cart-form { margin: 0; }
+    .cart-btn {
+        width: auto;
+        min-width: 160px;
+        margin: 0;
+        padding: 0.6rem 1.5rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        border-radius: 4px;
+    }
+
+    /* 説明文エリア：上部余白を徹底的に詰める */
+    .description-scroll {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding-right: 1.5rem;
+        scrollbar-width: thin;
+        scrollbar-color: var(--pico-muted-border-color) transparent;
+    }
+    .description-scroll::-webkit-scrollbar { width: 4px; }
+    .description-scroll::-webkit-scrollbar-thumb { background: var(--pico-muted-border-color); border-radius: 10px; }
+
+    .description-content {
+        font-size: 0.85rem;
+        line-height: 1.7; /* 少し詰め気味にして読みのリズムを作る */
+        color: #d1d1d1; /* 視認性を確保しつつ浮かび上がらせる */
+        padding-top: 0; /* 上の余白を完全にゼロに */
+        padding-bottom: 2rem;
+    }
+
+    /* モバイル対応 */
+    @media (max-width: 850px) {
+        .detail-container { height: auto; padding: 1rem; }
+        .product-grid { grid-template-columns: 1fr; gap: 2rem; overflow: visible; }
+        .info-pane { height: auto; overflow: visible; }
+        .description-scroll { max-height: 400px; padding-right: 0; }
+        .purchase-line { justify-content: space-between; gap: 1rem; }
+        .price-tag { font-size: 1.3rem; }
+    }
+</style>
+
+<div class="detail-container">
+    <header class="nav-header">
+        <a href="{% url 'shop:product_list' %}" class="back-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            BACK TO LIST
+        </a>
+    </header>
+
+    <div class="product-grid">
+        <div class="image-pane">
+            <div id="main-display" class="main-view">
+                {% if product.image %}
+                    <img src="{% cloudinary_url product.image width=800 height=800 crop='fill' %}" alt="{{ product.name }}">
+                {% endif %}
+            </div>
+            <div class="thumbs-row">
+                {% if product.image %}
+                <img src="{% cloudinary_url product.image width=150 height=150 crop='fill' %}" 
+                     class="thumb-item" 
+                     hx-get="{% url 'shop:load_image' %}?image_url={% cloudinary_url product.image width=800 height=800 crop='fill' %}" 
+                     hx-target="#main-display">
+                {% endif %}
+                {% for extra in product.additional_images.all %}
+                <img src="{% cloudinary_url extra.image width=150 height=150 crop='fill' %}" 
+                     class="thumb-item" 
+                     hx-get="{% url 'shop:load_image' %}?image_url={% cloudinary_url extra.image width=800 height=800 crop='fill' %}" 
+                     hx-target="#main-display">
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="info-pane">
+            <h1 class="product-name">{{ product.name }}</h1>
+
+            <div class="purchase-line">
+                <div class="price-tag">¥{{ product.price|floatformat:0|intcomma }}</div>
+                <form hx-post="{% url 'shop:add_to_cart' product.id %}" hx-target="#cart-count" class="add-cart-form">
+                    {% csrf_token %}
+                    <button type="submit" class="cart-btn">カートに追加</button>
+                </form>
+            </div>
+
+            <div class="description-scroll">
+                <div class="description-content">
+                    {{ product.description|linebreaksbr }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

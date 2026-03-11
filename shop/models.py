@@ -19,9 +19,7 @@ class Product(models.Model):
         validators=[MinValueValidator(0)],
         verbose_name="価格",
     )
-    stock = models.IntegerField(
-        default=0, validators=[MinValueValidator(0)], verbose_name="在庫数"
-    )
+    stock = models.IntegerField(default=0, validators=[MinValueValidator(0)], verbose_name="在庫数")
     is_active = models.BooleanField(default=True, verbose_name="販売可能")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="作成日時")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="更新日時")
@@ -39,12 +37,8 @@ class Product(models.Model):
         verbose_name_plural = "商品一覧"
         ordering = ["-created_at"]
         constraints = [
-            models.CheckConstraint(
-                condition=models.Q(price__gte=0), name="price_not_negative"
-            ),
-            models.CheckConstraint(
-                condition=models.Q(stock__gte=0), name="stock_not_negative"
-            ),
+            models.CheckConstraint(condition=models.Q(price__gte=0), name="price_not_negative"),
+            models.CheckConstraint(condition=models.Q(stock__gte=0), name="stock_not_negative"),
         ]
 
     def __str__(self) -> str:
@@ -59,12 +53,8 @@ class Order(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="購入者")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="注文日時")
-    status = models.CharField(
-        max_length=20, default="pending", verbose_name="ステータス"
-    )
-    total_price = models.DecimalField(
-        max_digits=10, decimal_places=0, default=0, verbose_name="合計金額"
-    )
+    status = models.CharField(max_length=20, default="pending", verbose_name="ステータス")
+    total_price = models.DecimalField(max_digits=10, decimal_places=0, default=0, verbose_name="合計金額")
 
     class Meta:
         verbose_name = "注文"
@@ -77,9 +67,7 @@ class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="商品")
     quantity = models.PositiveIntegerField(default=1, verbose_name="数量")
-    price = models.DecimalField(
-        max_digits=10, decimal_places=0, verbose_name="購入時価格"
-    )
+    price = models.DecimalField(max_digits=10, decimal_places=0, verbose_name="購入時価格")
 
     class Meta:
         verbose_name = "注文明細"
@@ -87,7 +75,23 @@ class OrderItem(models.Model):
 
     @property
     def subtotal(self) -> Decimal:
-        return self.price * self.quantity
+        return Decimal(self.price * self.quantity)
 
     def __str__(self) -> str:
         return f"{self.product.name} ({self.quantity})"
+
+    # --- OrderItem クラスのさらに下に貼り付け ---
+
+
+class ProductImage(models.Model):
+    """商品サブ画像モデル [cite: 2026-03-09]"""
+
+    product = models.ForeignKey(
+        Product, related_name="additional_images", on_delete=models.CASCADE, verbose_name="商品"
+    )
+    image = CloudinaryField("サブ画像", folder="products/gallery", null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "商品サブ画像"
+        verbose_name_plural = "商品サブ画像一覧"

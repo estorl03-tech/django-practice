@@ -1,7 +1,27 @@
-<div id="messages" hx-swap-oob="true">
-    {% for message in messages %}
-    <article class="{{ message.tags }}" style="margin-bottom: 0.5rem;">
-        {{ message }}
-    </article>
-    {% endfor %}
+{# shop/partials/messages.html #}
+<div id="messages-container" hx-swap-oob="true">
+    <div id="messages">
+        {% for message in messages %}
+        <article class="{{ message.tags }}" style="margin-bottom: 0.5rem; transition: opacity 0.5s ease;">
+            {{ message }}
+        </article>
+        {% endfor %}
+    </div>
+
+    {# UX向上: メッセージを自動で消すスクリプト (KISS原則) #}
+    {% if messages %}
+    <script>
+        (function() {
+            const container = document.getElementById('messages');
+            if (container) {
+                // 3秒後にフェードアウト
+                setTimeout(() => {
+                    container.style.opacity = '0';
+                    // アニメーション完了後に要素を削除（DOMを綺麗に保つ）
+                    setTimeout(() => { container.innerHTML = ''; container.style.opacity = '1'; }, 500);
+                }, 3000);
+            }
+        })();
+    </script>
+    {% endif %}
 </div>

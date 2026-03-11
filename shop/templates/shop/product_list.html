@@ -1,41 +1,40 @@
 {% extends "base.html" %}
-{% load humanize %}
-{% load static %}
-{% load cloudinary %}
 
 {% block content %}
-<section>
-    <h2 style="margin-bottom: 1.5rem;">商品一覧</h2>
+{# 🚀 padding-top を 1rem に固定。これでナビ直下の絶妙な位置に来ます #}
+<section style="padding-top: 0.9rem; padding-bottom: 2rem;">
+    
+    {# 1. タイトル：上下マージンをさらに絞り、検索バーとの一体感を強化 #}
+    <div style="text-align: center; margin-bottom: 1.2rem;">
+        <h2 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #fff; letter-spacing: 2px; text-transform: uppercase; opacity: 0.9;">
+            Discover Products
+        </h2>
+        <p style="color: var(--pico-muted-color); font-size: 0.75rem; margin-top: 0.2rem;">
+            厳選されたアイテムからお気に入りを見つける
+        </p>
+    </div>
 
-    {# 最小幅を280pxに設定：スマホで1列、PCで4列になるレスポンシブ黄金比 [cite: 2026-03-09] #}
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
-        {% for product in products %}
-        <article style="margin: 0; padding: 0; display: flex; flex-direction: column; height: 100%;">
-            <header style="padding: 0; margin: 0; background: transparent; border-bottom: 1px solid var(--pico-muted-border-color); height: 240px; display: flex; justify-content: center; align-items: center; overflow: hidden;">
-                {% if product.image %}
-                    {# Cloudinaryタグの1行記述を死守：改行による表示崩れを防止 [cite: 2026-03-09] #}
-                    {# fmt: off #}{# djlint:off #}{% with img=product.image %}{% cloudinary img width=400 height=400 crop="fill" f="auto" q="auto" style="width:100%;height:100%;object-fit:contain;border-radius:0;" alt=product.name %}{% endwith %}{# djlint:on #}{# fmt: on #}
-                {% else %}
-                    <div style="color: var(--pico-muted-color); font-size: 0.8rem;">No Image</div>
-                {% endif %}
-            </header>
-
-            <div style="padding: 1rem; flex-grow: 1; display: flex; flex-direction: column;">
-                <h6 style="margin: 0; line-height: 1.2;">{{ product.name }}</h6>
-                <div style="font-size: 0.75rem; color: var(--pico-secondary-color); margin: 0.5rem 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line;">
-                    {{ product.catch_copy }}{% if product.catch_copy %}<br>{% endif %}{{ product.description }}
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
-                    <strong style="color: var(--pico-primary); font-size: 1.1rem;">
-                        ¥{{ product.price|floatformat:0|intcomma }}
-                    </strong>
-                    {# HTMXによる非同期カート追加機能 [cite: 2026-03-09] #}
-                    <button class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; width: auto; margin: 0;"
-                        hx-post="{% url 'shop:add_to_cart' product.id %}" hx-target="#cart-count">追加</button>
-                </div>
+    {# 2. 検索フォーム：無駄を削ぎ落としたサイズ感 #}
+    <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 2.5rem;"> 
+        <form hx-get="{% url 'shop:product_list' %}" hx-target="#product-grid-container" hx-swap="outerHTML" hx-trigger="submit" action="javascript:void(0);" style="width: 95%; max-width: 600px; margin: 0;">
+            <div style="display: flex; align-items: center; position: relative;">
+                <span aria-hidden="true" style="position: absolute; left: 1rem; z-index: 10; color: var(--pico-muted-color); pointer-events: none; font-size: 0.9rem;">🔍</span>
+                <fieldset role="group" style="width: 100%; margin-bottom: 0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); overflow: hidden; border: 1px solid rgba(255,255,255,0.12); display: flex; background: #1e232b;">
+                    <input type="search" name="q" id="search-input" placeholder="何かお探しですか？" value="{{ query|default:'' }}" aria-label="商品を検索" autocomplete="off" style="flex-grow: 1; margin-bottom: 0; padding-left: 2.5rem; border: none; height: 2.6rem; background-color: transparent; font-size: 0.95rem; color: #fff;" hx-get="{% url 'shop:product_list' %}" hx-trigger="keyup changed delay:300ms, search" hx-target="#product-grid-container" hx-swap="outerHTML" hx-push-url="true">
+                    <button type="submit" class="search-button" style="width: auto; min-width: 80px; flex-shrink: 0; margin: 0; padding: 0 1.2rem; border-radius: 0; background: var(--pico-primary); border: none; height: 2.6rem; font-weight: 700; color: #000; font-size: 0.85rem; cursor: pointer;">検索</button>
+                </fieldset>
             </div>
-        </article>
-        {% endfor %}
+        </form>
+    </div>
+
+    {# 3. グリッドコンテナ #}
+    <div id="product-grid-container" class="product-listing">
+        {% include "shop/partials/product_grid.html" %}
     </div>
 </section>
+
+<style>
+    .htmx-request .search-button { opacity: 0.7; pointer-events: none; }
+    input[type="search"]:focus { border: none !important; box-shadow: none !important; outline: none !important; }
+</style>
 {% endblock %}
