@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any, Dict
 
 import dj_database_url  # type: ignore
 import environ
@@ -43,7 +44,7 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 # --- アプリケーション定義 ---
 INSTALLED_APPS = [
-    "cloudinary_storage",  # staticfiles より前に配置
+    "cloudinary_storage",  # staticfiles より前に配置 (重要)
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -89,7 +90,7 @@ WSGI_APPLICATION = "myproject.wsgi.application"
 # --- 🛰️ データベース設定 ---
 db_url_env = env.str("DATABASE_URL")
 if db_url_env and db_url_env.startswith("postgres"):
-    DATABASES = {
+    DATABASES: Dict[str, Any] = {
         "default": dj_database_url.config(
             default=db_url_env,
             conn_max_age=600,
@@ -122,7 +123,7 @@ STORAGES = {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        # デフォルト。本番 (production.py) で WhiteNoise に上書き
+        # デフォルト設定。本番 (prod.py) で WhiteNoise ストレージに上書きされる
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }

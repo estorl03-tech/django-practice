@@ -5,14 +5,15 @@ services:
     plan: free
     region: singapore
     # ビルド時に静的ファイル収集とDBマイグレーションを完了させる
-    buildCommand: "uv sync --frozen && uv run python manage.py collectstatic --no-input && uv run python manage.py migrate"
-    # 起動コマンド（gunicornを使用）
+    # collectstatic のエラーを回避するため production 設定を明示
+    buildCommand: "uv sync --frozen && uv run python manage.py collectstatic --no-input --settings=myproject.settings.prod && uv run python manage.py migrate --settings=myproject.settings.prod"
+    # 起動コマンド
     startCommand: "uv run gunicorn myproject.wsgi:application"
     envVars:
       - key: PYTHON_VERSION
         value: 3.14.3
       - key: DJANGO_SETTINGS_MODULE
-        value: myproject.settings.prod  # 画像の「prod.py」に合わせました
+        value: myproject.settings.prod
       - key: PYTHONPATH
         value: "."
       - key: UV_SYSTEM_PYTHON
@@ -20,4 +21,4 @@ services:
       - key: RENDER
         value: "True"
       - key: ALLOWED_HOSTS
-        value: "*.onrender.com"
+        value: ".onrender.com"

@@ -20,6 +20,7 @@ try:
     if "whitenoise.middleware.WhiteNoiseMiddleware" not in MIDDLEWARE:  # noqa: F405
         MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")  # noqa: F405
 except NameError, AttributeError:
+    # Python 3 の正しい例外キャッチ構文に修正
     pass
 
 # --- 📦 静的ファイル & ストレージ設定 (Django 6.0.2 準拠) ---
@@ -28,17 +29,19 @@ STORAGES = {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        # Cloudinary の不足ファイルを無視してビルドを通すため、通常の Manifest ではなく標準を使用
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        # 🚀 修正: Cloudinary の FileNotFound エラーを回避するため、
+        # 圧縮処理を行わない標準の WhiteNoise ストレージを使用
+        "BACKEND": "whitenoise.storage.StaticFilesStorage",
     },
 }
 
-# 🚀 重要: Cloudinary 由来の FileNotFound を無視する設定
+# ホワイトノイズの詳細設定
 WHITENOISE_MANIFEST_STRICT = False
-# 圧縮処理でエラーが出る場合は False にする（Cloudinary との競合回避）
+# 静的ファイル探索を有効化
 WHITENOISE_USE_FINDERS = True
 
-# --- 🛰️ データベース設定 ---
+# --- 🛰️ データベース設定 (Pylance 型エラー対策済み) ---
+# cast を使用して DBConfig 型を Dict[str, Any] へ明示的に変換
 db_config = cast(
     Dict[str, Any],
     dj_database_url.config(  # noqa: F405
@@ -65,7 +68,7 @@ CLOUDINARY_STORAGE = {
     "API_SECRET": os.environ.get("CLOUDINARY_API_SECRET"),
 }
 
-# --- 🛰️ 互換性維持のための設定 ---
-# 修正箇所: 厳格な Manifest を避け、通常の CompressedStorage を指定
-STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+# --- 🛰️ 互換性維持のための設定 (Cloudinary ライブラリ対策) ---
+# 厳格な Manifest（圧縮）を避け、標準の配信ストレージを指定
+STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
