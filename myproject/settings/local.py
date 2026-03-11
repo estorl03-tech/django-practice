@@ -1,22 +1,28 @@
 from .base import *  # noqa: F403
 
 # --- 🚀 開発環境基本設定 (KISS原則) ---
-# 開発時は詳細なエラーメッセージを表示
 DEBUG = True
 
 # 🚀 ローカル環境の許可設定 (DRY原則: base.py の設定を継承しつつ拡張)
-# 0.0.0.0 を含めることで、同一ネットワーク内のスマホ等からの実機確認を容易にします
-ALLOWED_HOSTS += ["localhost", "127.0.0.1", "0.0.0.0", "testserver"]
+# noqa: F405 を追加して Ruff のスターインポート警告を抑制
+ALLOWED_HOSTS += ["localhost", "127.0.0.1", "0.0.0.0", "testserver"]  # noqa: F405
+
+# デバッグツール用の内部IP設定
+INTERNAL_IPS = ["127.0.0.1", "localhost"]
 
 # --- 📦 静的ファイル & ストレージ設定 (Django 6.0.2 準拠) ---
-# 開発時は WhiteNoise の圧縮機能を無効化し、ファイルの変更を即座に反映
-# これにより collectstatic を回す手間を省きます (KISS)
+# 開発時は WhiteNoise を通さず、標準の StaticFilesStorage を使用して即時反映
 STORAGES["staticfiles"] = {  # noqa: F405
     "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
 }
 
+# 🚀 メディアファイルのローカル優先設定 (オプション)
+# 開発中に Cloudinary へのアップロードを避けたい場合は以下のコメントアウトを外す
+# STORAGES["default"] = { # noqa: F405
+#     "BACKEND": "django.core.files.storage.FileSystemStorage",
+# }
+
 # --- 🔒 セキュリティ設定の緩和 (ローカル開発用) ---
-# 本番用の設定（HTTPS強制など）をオフにし、ローカルでのログイン不可問題を回避
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
