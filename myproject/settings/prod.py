@@ -4,60 +4,65 @@ import dj_database_url
 
 from .base import *  # noqa: F403
 
+# --- 🚀 本番環境基本設定 ---
 DEBUG = False
 
+# Render ホストの許可設定
 ALLOWED_HOSTS = [".onrender.com", "localhost", "127.0.0.1"]
+render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+if render_host:
+    ALLOWED_HOSTS.append(render_host)
 
-# --- MIDDLEWARE設定 (WhiteNoiseの挿入) ---
+# --- 🛠️ MIDDLEWARE 設定 (WhiteNoise 挿入) ---
 try:
-    # Python 3 の正しい例外キャッチ構文に修正
+    # SecurityMiddleware の直後（通常はインデックス1）に WhiteNoise を挿入
     if "whitenoise.middleware.WhiteNoiseMiddleware" not in MIDDLEWARE:  # noqa: F405
         MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")  # noqa: F405
 except NameError, AttributeError:
-    # MIDDLEWAREが定義されていない場合のフォールバック
-    MIDDLEWARE = [
-        "django.middleware.security.SecurityMiddleware",
-        "whitenoise.middleware.WhiteNoiseMiddleware",
-        "django.middleware.common.CommonMiddleware",
-        "django.middleware.csrf.CsrfViewMiddleware",
-        "django.contrib.sessions.middleware.SessionMiddleware",
-        "django.contrib.auth.middleware.AuthenticationMiddleware",
-        "django.contrib.messages.middleware.MessageMiddleware",
-    ]
+    # base.py で定義されていない場合の安全なフォールバック
+    pass
 
-# --- 静的ファイル設定 (BASE_DIRの安全な取得) ---
-# globals()から取得し、パス計算でのエラーを物理的に防ぎます
-current_base_dir = globals().get("BASE_DIR")
+# --- 📦 静的ファイル & ストレージ設定 (Django 6.0.2 準拠) ---
+# base.py の設定を本番用に最適化
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        # 本番環境では圧縮とキャッシュを有効化
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
-if current_base_dir:
-    STATIC_ROOT = os.path.join(current_base_dir, "staticfiles")
-    # ls で確認した static フォルダを読み込み対象にします
-    STATICFILES_DIRS = [os.path.join(current_base_dir, "static")]
-    # ストレージ設定
-    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# ホワイトノイズの詳細設定
+WHITENOISE_MANIFEST_STRICT = False
 
+# --- 🛰️ データベース設定 ---
+# conn_max_age で接続を維持し、Supabase への再接続オーバーヘッドを軽減
+DATABASES["default"] = dj_database_url.config(  # noqa: F405
+    conn_max_age=600, conn_health_checks=True, ssl_require=True
+)
+
+# --- 🔒 セキュリティ設定 (Render/HTTPS プロキシ対応) ---
+# 12-factor app に基づき、プロキシ背後での HTTPS 認識を確実にする
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# HSTS 設定 (ブラウザに HTTPS 強制を指示)
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+# その他のセキュリティヘッダー
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"
+
+# --- ☁️ Cloudinary 設定 ---
+# 既に base.py で env.str() により取得されているが、環境変数から直接上書きも可能
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": os.environ.get("CLOUDINARY_CLOUD_NAME"),
     "API_KEY": os.environ.get("CLOUDINARY_API_KEY"),
     "API_SECRET": os.environ.get("CLOUDINARY_API_SECRET"),
 }
-
-# base.py の設定を壊さず、Cloudinary に必要なアプリを適切な順序で差し込む
-try:
-    if "cloudinary_storage" not in INSTALLED_APPS:  # noqa: F405
-        INSTALLED_APPS.insert(0, "cloudinary_storage")  # noqa: F405
-    if "cloudinary" not in INSTALLED_APPS:  # noqa: F405
-        INSTALLED_APPS.append("cloudinary")  # noqa: F405
-except NameError:
-    pass
-
-# メディアファイルの保存先を指定
-DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
-
-# データベース設定
-DATABASES = {"default": dj_database_url.config(conn_max_age=600)}
-
-# セキュリティ設定
-SECURE_SSL_REDIRECT = False
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True

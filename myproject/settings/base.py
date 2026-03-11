@@ -7,28 +7,27 @@ import environ
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
-# 1. パスの設定 (uv 環境のプロジェクト構造)
+# 1. パスの設定 (uv 環境のプロジェクト構造: settings/base.py から 3つ上がルート)
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-# 2. django-environ の初期設定 (Python 3.14.3 / Django 6.0.2 準拠)
+# 2. django-environ の初期設定 (12-factor app / Python 3.14.3 / Django 6.0.2 準拠)
 env = environ.Env(
     DEBUG=(bool, False),
     ALLOWED_HOSTS=(list, []),
     SENTRY_DSN=(str, ""),
     SECRET_KEY=(str, "django-insecure-key"),
     DATABASE_URL=(str, ""),
-    # Cloudinary 用のデフォルト設定を追加
     CLOUDINARY_CLOUD_NAME=(str, ""),
     CLOUDINARY_API_KEY=(str, ""),
     CLOUDINARY_API_SECRET=(str, ""),
 )
 
-# .env ファイルの読み込み (12-factor app)
+# .env ファイルの読み込み
 env_file = BASE_DIR / ".env"
 if env_file.exists():
     environ.Env.read_env(str(env_file))
 
-# --- 🚀 Sentry の初期化 (省略なし) ---
+# --- 🚀 Sentry の初期化 (エラー対策) ---
 SENTRY_DSN: str = env.str("SENTRY_DSN")
 if SENTRY_DSN:
     sentry_sdk.init(
@@ -46,45 +45,47 @@ SECRET_KEY: str = env.str("SECRET_KEY")
 DEBUG: bool = env.bool("DEBUG")
 ALLOWED_HOSTS: List[str] = env.list("ALLOWED_HOSTS")
 
-# --- 本番環境（Render等）特有の設定 ---
-if os.environ.get("RENDER"):
+# Render環境の検知 (12-factor app)
+IS_RENDER = "RENDER" in os.environ
+
+if IS_RENDER:
+    # 🚀 本番環境の設定 (Render特有の最適化)
     DEBUG = False
 
-    ALLOWED_HOSTS.extend(["localhost", "127.0.0.1", ".onrender.com"])
-
+    # Renderの外部ホスト名を許可リストに自動追加 (ポート疎通エラー対策)
     render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
     if render_host:
         ALLOWED_HOSTS.append(render_host)
+    ALLOWED_HOSTS.extend(["localhost", "127.0.0.1", ".onrender.com"])
 
-    # セキュリティ ベストプラクティス
-    SECURE_SSL_REDIRECT = False
+    # セキュリティ ベストプラクティス (Renderプロキシ対応)
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = "DENY"
 
 # --- アプリケーション定義 (モジュラモノリス設計) ---
 INSTALLED_APPS = [
-    "cloudinary_storage",  # staticfiles より前に配置（KISS原則）
+    "cloudinary_storage",  # staticfiles より前に配置 (KISS)
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "cloudinary",  # 追加
+    "cloudinary",
     "django.contrib.humanize",
     "shop",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # SecurityMiddleware の直後
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -113,7 +114,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "myproject.wsgi.application"
 
-# --- 🛰️ データベース設定 (Supabase 接続強制ロジック) ---
+# --- 🛰️ データベース設定 (Supabase 接続強制ロジック / 事実に基づいた設定) ---
 db_url_env: str = env.str("DATABASE_URL")
 if db_url_env and db_url_env.startswith("postgres"):
     print("🚀 DATABASE_URL detected: Using Supabase (PostgreSQL)")
@@ -141,13 +142,10 @@ CLOUDINARY_STORAGE = {
     "API_SECRET": env.str("CLOUDINARY_API_SECRET"),
 }
 
-# --- 静的ファイル & メディアファイル設定 (Django 6.0 準拠) ---
+# --- 📦 静的ファイル & メディアファイル設定 (Django 6.0 準拠) ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 STORAGES = {
     "default": {
@@ -155,15 +153,18 @@ STORAGES = {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        # 本番環境では WhiteNoise による圧縮・キャッシュ、開発時は標準
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        if not DEBUG
+        else "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
 
+# WhiteNoise の詳細設定
 WHITENOISE_MANIFEST_STRICT = False
-WHITENOISE_USE_FINDERS = True
 WHITENOISE_KEEP_FILES_ON_DISK = True
 
-# --- 国際化・パスワード設定 (省略なし) ---
+# --- 国際化・パスワード設定 ---
 LANGUAGE_CODE = "ja"
 TIME_ZONE = "Asia/Tokyo"
 USE_I18N = True
@@ -171,7 +172,7 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": ("django.contrib.auth.password_validation.UserAttributeSimilarityValidator")},
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
