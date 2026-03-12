@@ -1,81 +1,81 @@
-# 🛍️ Gemini Portfolio Shop
+# ✨ Gemini Portfolio Shop
 
-Django + HTMX を活用した、堅牢かつモダンな UX を持つ  
-E-Commerce サイトのポートフォリオです。
+**「KISS原則を核とし、実務的な堅牢性を追求した Django 6.0 × HTMX ECポートフォリオ」**
 
-UI の心地よさと、バックエンドの整合性（在庫管理・排他制御）の両立にこだわって開発しています。
+本プロジェクトは、最新の **Python 3.14.3** と **Django 6.0** をベースに、「バックエンドエンジニアがいかにしてフロントエンドの複雑性を制御し、データの整合性を守るか」をテーマに構築したECサイト・ポートフォリオです。
 
----
-
-## 🚀 主な機能と技術的ハイライト
-
-### 1️⃣ モダンな非同期 UX（HTMX）
-
-- **SPA 風の操作感**
-  - ページ全体のリロードを避け、HTMX の OOB (Out-of-Band) Swaps を活用
-- **即時フィードバック**
-  - 商品追加時に「右上のカート数」と「通知メッセージ」をピンポイントで動的更新
+## 🚀 Demo
+- **URL**: [https://django-ec-portfolio.onrender.com](https://django-ec-portfolio.onrender.com)
+- **Guest Account**: 
+  - ID: `guest_user` / Pass: `guest_password123`
+  - ※ログイン後、カート操作から注文完了までのフローをスムーズに確認いただけます。
 
 ---
 
-### 2️⃣ 堅牢なビジネスロジック（Service Layer）
+## 🛠️ Tech Stack
 
-- **Thin View / Fat Service**
-  - ロジックを `services.py` に集約し、保守性とテスト性を向上
-- **データ不整合の防止**
-  - `select_for_update` による行ロック
-  - `F()` クエリによるアトミックな更新
-  - `transaction.atomic()` による整合性担保
+### **Core Stack**
+- **Framework**: Python 3.14.3 / Django 6.0.2
+- **Frontend**: HTMX 2.0 / Pico CSS 2.1.1 (No-build, Semantic UI)
+- **Database**: Supabase (PostgreSQL)
+- **Storage**: Cloudinary (Image management)
+- **Monitoring**: Sentry
+- **Package Manager**: **uv** (Next-generation Python tool)
 
----
-
-### 3️⃣ CI/CD & 品質管理（GitHub Actions 連携済み）
-
-- **自動化されたパイプライン**
-  - GitHub への Push 時に GitHub Actions が起動
-- **品質ガードレール**
-  - 以下のチェックを CI 上で自動実行
-  - パスしない限りデプロイ不可
-
-#### 🔍 CI で実行しているチェック
-
-- Ruff（高速 Lint & コードスタイルチェック）
-- mypy（厳密な型チェック）
-- pytest（決済ロジックを含むユニットテスト）
-
-#### 🛡️ エラー監視
-
-- Sentry を導入し、本番環境での例外をリアルタイム検知
+### **Quality & Automation**
+- **CI/CD**: GitHub Actions (Lint, Type Check, Test, Deploy)
+- **Static Analysis**: **Ruff** (Lint/Format), **Mypy** (Strict Type Check)
+- **Testing**: Pytest / Django Test
 
 ---
 
-## 🛠️ 技術スタック
+## 📈 Performance & Web Vitals
+本プロジェクトは、JSランタイムを最小限に抑えた設計により、モバイル環境でも極めて高いパフォーマンスを記録しています。
 
-| Category        | Technology |
-|----------------|------------|
-| Framework      | Django 6.0 |
-| Frontend       | HTMX, Pico.css, Django Template |
-| Database       | PostgreSQL / SQLite |
-| CI/CD          | GitHub Actions（Ruff, mypy, pytest） |
-| Infrastructure | django-environ, Sentry |
+![PageSpeed Insights Score](./image_6ec4ba.png)
+
+- **Performance: 94** / **Accessibility: 98** / **Best Practices: 100** / **SEO: 91**
+- **No-JS Framework**: HTMXを採用し、巨大なJavaScriptの読み込みと実行オーバーヘッドを排除。
+- **Image Optimization**: CloudinaryによるWebP自動変換とCDN配信。
 
 ---
 
-## 🏁 セットアップ
+## ✨ 3-Layered Engineering (実装のこだわり)
 
-### 開発環境の起動
+単に「動く」だけでなく、以下の3層でデータの整合性とUXを担保しています。
+
+### 1. Model層：DBレベルでの防衛線
+- **CheckConstraint**: `models.py` にて価格と在庫が負の値にならないようDBレベルで制約を付与。
+- **Price Snapshot**: 注文時の価格を `OrderItem` に保存し、将来の価格改定による過去データの不整合を防止。
+
+### 2. Service層：ビジネスロジックの集約
+- **Atomic Transactions**: `transaction.atomic` による注文・在庫更新の完全な一貫性保証。
+- **Concurrency Control**: `select_for_update()` による行ロックと、`F()` クエリによるDB直結の在庫減算ロジックを実装。
+
+### 3. View層：HTMXによる軽量SPA体験
+- **OOB (Out-of-Band) Swap**: `hx-swap-oob` を活用。一回のリクエストで「カートバッジ」「在庫表示」「メッセージ」を同時更新。
+- **Security**: `@login_required` や所有権チェック (`filter(user=request.user)`) をViewレベルで徹底。
+
+---
+
+## 📦 Local Setup (using uv)
 
 ```bash
-# 依存関係のインストール（uv 使用）
+# クローン
+git clone [https://github.com/estorl03-tech/django-practice](https://github.com/estorl03-tech/django-practice)
+cd django-practice
+
+# uvによる環境構築
 uv sync
 
-# マイグレーション
+# マイグレーション & サーバー起動
 uv run python manage.py migrate
-
-# サーバー起動
 uv run python manage.py runserver
+```
 
-# GitHub Actions と同じ工程を一括実行
-uv run ruff check . && \
-uv run mypy . && \
-uv run pytest
+信頼性への取り組み
+uv/Ruff/Mypy: 開発環境の標準化と、静的解析による品質維持。
+
+12-factor app: 環境変数による設定分離とステートレスな設計（KISS原則）。
+
+CI/CD: 品質チェックをパスしなければデプロイされない安全なリリースサイクル。
