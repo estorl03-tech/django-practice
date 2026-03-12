@@ -169,19 +169,31 @@ def update_cart_item(request: HttpRequest, product_id: int) -> HttpResponse:
 @login_required
 @require_POST
 def empty_cart(request: HttpRequest) -> HttpResponse:
-    """カートを完全に空にする（ゴミ箱ボタン）"""
+    # ... (クリア処理はそのまま) ...
     clear_cart(request.session)
+    request.session["cart"] = {}
+    request.session.modified = True
+    messages.success(request, "カートを空にしました。")
 
     if request.headers.get("HX-Request"):
-        cart_zero_html = '<span id="cart-count" class="badge" hx-swap-oob="true">0</span>'
-        empty_content = render_to_string(
-            "shop/partials/cart_details.html", {"cart_items": [], "total_price": 0, "cart_count": 0}, request=request
-        )
-        messages.success(request, "カートを空にしました。")
+        # 1. メッセージ (これが hx-target="#messages-container" に入る)
         msg_html = render_to_string("shop/partials/messages.html", request=request)
-        return HttpResponse(empty_content + cart_zero_html + msg_html)
 
-    return redirect(request.META.get("HTTP_REFERER", "shop:product_list"))
+        # 2. バッジ更新 (OOB)
+        cart_badge = '<span id="cart-count" class="badge" hx-swap-oob="true">0</span>'
+
+        # 3. カートエリア更新 (OOB)
+        cart_area_html = ""
+        referer = request.META.get("HTTP_REFERER", "")
+        if "checkout" in referer:
+            context = {"cart_items": [], "total_price": 0, "cart_count": 0}
+            content = render_to_string("shop/partials/cart_details.html", context, request=request)
+            cart_area_html = content.replace('id="cart-area"', 'id="cart-area" hx-swap-oob="true"')
+
+        # 🛡️ まとめて返却
+        return HttpResponse(f"{msg_html}\n{cart_badge}\n{cart_area_html}")
+
+    return redirect("shop:checkout")
 
 
 @login_required

@@ -48,10 +48,15 @@
 
     <div class="grid" style="grid-template-columns: 1fr auto auto; align-items: center; gap: 1rem; margin-top: 1rem;">
         <div></div>
-        <a href="{% url 'shop:empty_cart' %}" class="outline secondary" role="button"
-            style="width: fit-content; margin-bottom: 0; padding: 0.5rem 1rem; font-size: 0.9rem;">
+        <button class="outline secondary" 
+                hx-post="{% url 'shop:empty_cart' %}"
+                hx-target="#cart-area" 
+                hx-swap="outerHTML"
+                hx-confirm="カートを空にしますか？"
+                style="width: fit-content; margin-bottom: 0; padding: 0.5rem 1rem; font-size: 0.9rem;">
             カートを空にする
-        </a>
+        </button>
+        
         <form method="post" style="margin: 0; width: fit-content;">
             {% csrf_token %}
             <button type="submit" name="submit_order" class="primary"
