@@ -32,7 +32,7 @@
 ## 📈 Performance & Web Vitals
 本プロジェクトは、JSランタイムを最小限に抑えた設計により、モバイル環境でも極めて高いパフォーマンスを記録しています。
 
-![PageSpeed Insights Score](./image_6ec4ba.png)
+![PageSpeed Insights Score](82d24522-69cd-4d08-bd6e-f54ac6c76c08.png)
 
 - **Performance: 94** / **Accessibility: 98** / **Best Practices: 100** / **SEO: 91**
 - **No-JS Framework**: HTMXを採用し、巨大なJavaScriptの読み込みと実行オーバーヘッドを排除。
