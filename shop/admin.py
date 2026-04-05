@@ -18,9 +18,7 @@ else:
 
 
 class ProductImageInline(ProductImageInlineBase):
-    """
-    商品サブ画像を商品編集画面にインライン表示 [cite: 2026-03-09]
-    """
+    """商品サブ画像を商品編集画面にインライン表示する。"""
 
     model = ProductImage
     extra = 3  # デフォルトの空枠数
@@ -29,11 +27,7 @@ class ProductImageInline(ProductImageInlineBase):
 
 @admin.register(Product)
 class ProductAdmin(ProductAdminBase):
-    """
-    商品管理の設定
-    - list_editable により一覧画面からクイック編集が可能
-    - ProductImageInline により複数画像を管理
-    """
+    """商品管理画面の設定。"""
 
     list_display = ["id", "name", "price", "stock", "is_active", "created_at"]
     list_filter = ["is_active", "created_at"]
@@ -41,14 +35,11 @@ class ProductAdmin(ProductAdminBase):
     search_fields = ["name"]
     fields = ("name", "description", "price", "image", "stock", "is_active")
 
-    # 🔽 ここでサブ画像のインラインを登録
     inlines = [ProductImageInline]
 
 
 class OrderItemInline(OrderItemInlineBase):
-    """
-    注文詳細を注文編集画面にインライン表示
-    """
+    """注文詳細を注文編集画面にインライン表示する。"""
 
     model = OrderItem
     extra = 0
@@ -57,9 +48,7 @@ class OrderItemInline(OrderItemInlineBase):
 
 @admin.register(Order)
 class OrderAdmin(OrderAdminBase):
-    """
-    注文管理の設定
-    """
+    """注文管理画面の設定。"""
 
     list_display = ["id", "user", "created_at", "status"]
     list_filter = ["status", "created_at"]

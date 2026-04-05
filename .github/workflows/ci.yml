@@ -54,7 +54,7 @@ jobs:
 
   deploy:
     name: Automated Deployment to Render
-    needs: quality-assurance # ⚠ 重要: LintとTestが成功した時のみデプロイ
+    needs: quality-assurance
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     

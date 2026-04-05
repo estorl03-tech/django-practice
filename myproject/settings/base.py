@@ -26,7 +26,7 @@ env_file = BASE_DIR / ".env"
 if env_file.exists():
     environ.Env.read_env(str(env_file))
 
-# --- 🚀 Sentry の初期化 (エラー追跡) ---
+# Sentry の初期化
 SENTRY_DSN: str = env.str("SENTRY_DSN")
 if SENTRY_DSN:
     sentry_sdk.init(
@@ -37,12 +37,12 @@ if SENTRY_DSN:
     )
     print("✅ Sentry is active")
 
-# --- 3. 基本設定 ---
+# 基本設定
 SECRET_KEY = env.str("SECRET_KEY")
 DEBUG = env.bool("DEBUG")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
-# --- アプリケーション定義 ---
+# アプリケーション定義
 INSTALLED_APPS = [
     "cloudinary_storage",  # staticfiles より前に配置 (重要)
     "django.contrib.admin",
@@ -87,7 +87,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "myproject.wsgi.application"
 
-# --- 🛰️ データベース設定 ---
+# データベース設定
 db_url_env = env.str("DATABASE_URL")
 if db_url_env and db_url_env.startswith("postgres"):
     DATABASES: Dict[str, Any] = {
@@ -106,14 +106,14 @@ else:
         }
     }
 
-# --- ☁️ Cloudinary 設定 ---
+# Cloudinary 設定
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": env.str("CLOUDINARY_CLOUD_NAME"),
     "API_KEY": env.str("CLOUDINARY_API_KEY"),
     "API_SECRET": env.str("CLOUDINARY_API_SECRET"),
 }
 
-# --- 📦 静的ファイル & ストレージ設定 (Django 6.0 準拠) ---
+# 静的ファイルとストレージ設定
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
@@ -123,17 +123,17 @@ STORAGES = {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        # デフォルト設定。本番 (prod.py) で WhiteNoise ストレージに上書きされる
+        # 本番では prod.py で WhiteNoise ストレージに上書きする
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
 
-# --- 🛰️ 互換性維持のための設定 (Cloudinary ライブラリ対策) ---
+# 互換性維持のための設定
 # django-cloudinary-storage が内部で古い変数を参照するための回避策
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
-# --- 国際化・パスワード設定 ---
+# 国際化と認証設定
 LANGUAGE_CODE = "ja"
 TIME_ZONE = "Asia/Tokyo"
 USE_I18N = True

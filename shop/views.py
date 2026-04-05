@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.db import transaction  # 🛡️ 排他制御用
+from django.db import transaction
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -47,15 +47,12 @@ def product_list(request: HttpRequest) -> HttpResponse:
 def add_to_cart(request: HttpRequest, product_id: int) -> HttpResponse:
     """カート追加：最新の在庫状況をDBから直接チェック（排他制御付き）"""
 
-    # 🛡️ セキュリティ対策：トランザクション内でDB行をロックし、連打による在庫計算の狂いを防ぐ
     with transaction.atomic():
-        # select_for_update() により、処理が終わるまで他からの更新を待機させる
         product = get_object_or_404(Product.objects.select_for_update(), id=product_id)
 
         cart: Dict[str, int] = request.session.get("cart", {})
         current_qty = cart.get(str(product_id), 0)
 
-        # 在庫不足の判定
         if current_qty + 1 > product.stock:
             available_qty = max(0, product.stock - current_qty)
             messages.error(request, f"{product.name} の在庫不足（残り: {available_qty}個）")
@@ -67,15 +64,11 @@ def add_to_cart(request: HttpRequest, product_id: int) -> HttpResponse:
                 return HttpResponse(msg_html + cart_html)
             return redirect("shop:product_list")
 
-        # 正常な追加処理
         total_quantity = add_item_to_cart(request.session, product_id)
 
-    # HTMXレスポンス生成
     if request.headers.get("HX-Request"):
-        # カート個数バッジの更新（OOB）
         cart_html = f'<span id="cart-count" class="badge" hx-swap-oob="true">{total_quantity}</span>'
 
-        # 在庫表示のリアルタイム更新（OOB）
         updated_cart = request.session.get("cart", {})
         item_qty = updated_cart.get(str(product_id), 0)
         display_stock = product.stock - item_qty
@@ -104,7 +97,6 @@ def checkout(request: HttpRequest) -> HttpResponse:
 
     if request.method == "POST" and "submit_order" in request.POST and cart_items:
         try:
-            # 🛡️ 注文作成サービス内でも在庫減算処理に atomic/select_for_update を使うことを推奨
             create_order(user, cart_items, total_price)
             request.session["cart"] = {}
             request.session.modified = True
@@ -169,20 +161,16 @@ def update_cart_item(request: HttpRequest, product_id: int) -> HttpResponse:
 @login_required
 @require_POST
 def empty_cart(request: HttpRequest) -> HttpResponse:
-    # ... (クリア処理はそのまま) ...
     clear_cart(request.session)
     request.session["cart"] = {}
     request.session.modified = True
     messages.success(request, "カートを空にしました。")
 
     if request.headers.get("HX-Request"):
-        # 1. メッセージ (これが hx-target="#messages-container" に入る)
         msg_html = render_to_string("shop/partials/messages.html", request=request)
 
-        # 2. バッジ更新 (OOB)
         cart_badge = '<span id="cart-count" class="badge" hx-swap-oob="true">0</span>'
 
-        # 3. カートエリア更新 (OOB)
         cart_area_html = ""
         referer = request.META.get("HTTP_REFERER", "")
         if "checkout" in referer:
@@ -190,7 +178,6 @@ def empty_cart(request: HttpRequest) -> HttpResponse:
             content = render_to_string("shop/partials/cart_details.html", context, request=request)
             cart_area_html = content.replace('id="cart-area"', 'id="cart-area" hx-swap-oob="true"')
 
-        # 🛡️ まとめて返却
         return HttpResponse(f"{msg_html}\n{cart_badge}\n{cart_area_html}")
 
     return redirect("shop:checkout")

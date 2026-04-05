@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from cloudinary.models import CloudinaryField
 from django.contrib.auth.models import User
@@ -24,7 +24,6 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="作成日時")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="更新日時")
 
-    # 引数重複エラー修正済み
     image = CloudinaryField(
         "商品画像",
         folder="products",
@@ -43,9 +42,6 @@ class Product(models.Model):
 
     def __str__(self) -> str:
         return self.name
-
-    def save(self, *args: Any, **kwargs: Any) -> None:
-        super().save(*args, **kwargs)
 
 
 class Order(models.Model):
@@ -80,11 +76,8 @@ class OrderItem(models.Model):
     def __str__(self) -> str:
         return f"{self.product.name} ({self.quantity})"
 
-    # --- OrderItem クラスのさらに下に貼り付け ---
-
-
 class ProductImage(models.Model):
-    """商品サブ画像モデル [cite: 2026-03-09]"""
+    """商品サブ画像モデル"""
 
     product = models.ForeignKey(
         Product, related_name="additional_images", on_delete=models.CASCADE, verbose_name="商品"

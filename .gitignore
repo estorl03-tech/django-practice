@@ -7,15 +7,17 @@ wheels/
 *.egg-info
 
 # Virtual environments
-.venv
+.venv/
 db.sqlite3
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
 .env
+.coverage
+htmlcov/
+staticfiles/
 
 # Media files
-tore .
 media/*
 !media/products/
 !media/products/**
