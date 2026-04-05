@@ -3,8 +3,10 @@ from decimal import Decimal
 from typing import Any
 
 import pytest
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import connection
+from django.urls import reverse
 
 from .models import Order, Product
 from .services import create_order
@@ -96,3 +98,57 @@ class TestOrderService:
 
         product.refresh_from_db()
         assert product.stock == 0
+
+
+class TestShopViews:
+    """主要画面の表示とアクセス制御を確認する。"""
+
+    def test_product_list_is_public(self, client: Any) -> None:
+        Product.objects.create(name="公開商品", description="一覧表示テスト", price=Decimal("1200"), stock=5)
+
+        response = client.get(reverse("shop:product_list"))
+
+        assert response.status_code == 200
+        assert "公開商品" in response.content.decode("utf-8")
+
+    def test_checkout_requires_login(self, client: Any) -> None:
+        response = client.get(reverse("shop:checkout"))
+
+        assert response.status_code == 302
+        assert reverse("login") in response.url
+
+    def test_order_history_shows_only_logged_in_users_orders(self, client: Any) -> None:
+        owner = User.objects.create_user(username="owner", password="pass12345")
+        other_user = User.objects.create_user(username="other", password="pass12345")
+        owner_order = Order.objects.create(user=owner, status="pending", total_price=Decimal("1500"))
+        Order.objects.create(user=other_user, status="pending", total_price=Decimal("2800"))
+
+        logged_in = client.login(username="owner", password="pass12345")
+        response = client.get(reverse("shop:order_history"))
+        page = response.content.decode("utf-8")
+
+        assert logged_in is True
+        assert response.status_code == 200
+        assert str(owner_order.total_price) not in page
+        assert "1,500" in page or "1500" in page
+        assert "2,800" not in page and "2800" not in page
+
+    def test_checkout_post_creates_order_and_clears_cart(self, client: Any) -> None:
+        user = User.objects.create_user(username="buyer", password="pass12345")
+        product = Product.objects.create(name="購入商品", description="checkout test", price=Decimal("2000"), stock=4)
+
+        client.force_login(user)
+        session = client.session
+        session["cart"] = {str(product.id): 2}
+        session.save()
+
+        response = client.post(reverse("shop:checkout"), {"submit_order": "1"})
+
+        product.refresh_from_db()
+        orders = Order.objects.filter(user=user)
+
+        assert response.status_code == 200
+        assert orders.count() == 1
+        assert orders.first().total_price == Decimal("4000")
+        assert product.stock == 2
+        assert client.session.get("cart", {}) == {}
