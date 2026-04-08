@@ -4,6 +4,7 @@ from typing import Any
 
 import pytest
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import connection
 from django.urls import reverse
@@ -103,6 +104,10 @@ class TestOrderService:
 class TestShopViews:
     """主要画面の表示とアクセス制御を確認する。"""
 
+    @pytest.fixture(autouse=True)
+    def clear_cache(self) -> None:
+        cache.clear()
+
     def test_product_list_is_public(self, client: Any) -> None:
         Product.objects.create(name="公開商品", description="一覧表示テスト", price=Decimal("1200"), stock=5)
 
@@ -152,3 +157,21 @@ class TestShopViews:
         assert orders.first().total_price == Decimal("4000")
         assert product.stock == 2
         assert client.session.get("cart", {}) == {}
+
+    def test_load_image_rejects_non_cloudinary_url(self, client: Any) -> None:
+        response = client.get(reverse("shop:load_image"), {"image_url": "https://example.com/image.png"})
+
+        assert response.status_code == 200
+        assert response.content == b""
+
+    def test_login_is_rate_limited_after_repeated_failures(self, client: Any) -> None:
+        User.objects.create_user(username="locked", password="pass12345")
+
+        for _ in range(5):
+            response = client.post(reverse("login"), {"username": "locked", "password": "wrong-password"})
+            assert response.status_code == 200
+
+        blocked = client.post(reverse("login"), {"username": "locked", "password": "wrong-password"})
+
+        assert blocked.status_code == 429
+        assert "ログイン試行回数が上限に達しました".encode("utf-8") in blocked.content

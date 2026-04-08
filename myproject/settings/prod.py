@@ -2,11 +2,15 @@ import os
 from typing import Any, Dict, cast
 
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 from .base import *  # noqa: F403
 
 # 本番環境の基本設定
 DEBUG = False
+
+if not SECRET_KEY or SECRET_KEY == "django-insecure-key":  # noqa: F405
+    raise ImproperlyConfigured("SECRET_KEY must be set in production.")
 
 # Render ホストの許可設定
 ALLOWED_HOSTS = [".onrender.com", "localhost", "127.0.0.1"]

@@ -12,6 +12,8 @@ from django.template.loader import render_to_string
 from django.utils.html import format_html
 from django.views.decorators.http import require_POST
 
+from myproject.auth_views import is_allowed_image_url
+
 from .models import Order, Product
 from .services import (
     add_item_to_cart,
@@ -201,7 +203,7 @@ def product_detail(request: HttpRequest, product_id: int) -> HttpResponse:
 def load_image(request: HttpRequest) -> HttpResponse:
     """外部画像の読み込み（HTMX遅延読み込み用）：XSS対策済み"""
     image_url = request.GET.get("image_url", "")
-    if not image_url:
+    if not image_url or not is_allowed_image_url(image_url):
         return HttpResponse("")
 
     return HttpResponse(
