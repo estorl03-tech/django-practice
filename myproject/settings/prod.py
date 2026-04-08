@@ -41,7 +41,11 @@ WHITENOISE_USE_FINDERS = True
 db_config = cast(
     Dict[str, Any],
     dj_database_url.config(  # noqa: F405
-        conn_max_age=600, conn_health_checks=True, ssl_require=True
+        # Render free + Supabase pooler では長寿命接続が stale になりやすいため、
+        # リクエストごとに接続を開き直す寄りの設定にする。
+        conn_max_age=0,
+        conn_health_checks=True,
+        ssl_require=True,
     ),
 )
 DATABASES["default"] = db_config  # noqa: F405
