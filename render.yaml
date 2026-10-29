@@ -12,6 +12,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.15.2
+      - key: UV_VERSION
+        value: 0.13.6
       - key: DJANGO_SETTINGS_MODULE
         value: myproject.settings.prod
       - key: PYTHONPATH
