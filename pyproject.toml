@@ -3,7 +3,7 @@ name = "django-practice"
 version = "0.1.0"
 description = "Portfolio EC site built with Django, HTMX, and Pico CSS"
 readme = "README.md"
-requires-python = ">=3.12,<3.15"
+requires-python = "==3.15.2"
 dependencies = [
     "cloudinary>=1.44.1",
     "dj-database-url>=3.1.2",
@@ -32,7 +32,7 @@ dev = [
 
 [tool.ruff]
 line-length = 120
-target-version = "py312"
+target-version = "py315"
 lint.select = ["E", "F", "I", "B"]
 exclude = ["**/migrations/*.py"]
 extend-exclude = ["*.html"]

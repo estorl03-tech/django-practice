@@ -181,7 +181,7 @@ erDiagram
 
 ## Tech Stack
 
-- Backend: Python 3.14.3, Django 6.0.2
+- Backend: Python 3.15.2, Django 6.1.2
 - Frontend: HTMX 2.0, Pico CSS 2
 - Database: PostgreSQL (Supabase)
 - Storage: Cloudinary
