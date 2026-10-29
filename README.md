@@ -53,7 +53,7 @@ UI の心地よさと、バックエンドの整合性（在庫管理・排他�
 
 | Category        | Technology |
 |----------------|------------|
-| Framework      | Django 6.0 |
+| Framework      | Django 6.1 |
 | Frontend       | HTMX, Pico.css, Django Template |
 | Database       | PostgreSQL / SQLite |
 | CI/CD          | GitHub Actions（Ruff, mypy, pytest） |

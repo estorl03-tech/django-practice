@@ -3,7 +3,7 @@ name = "django-practice"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = "==3.14.3"
+requires-python = "==3.15.2"
 dependencies = [
     "cloudinary>=1.44.1",
     "dj-database-url>=3.1.2",
@@ -33,7 +33,7 @@ dev = [
 [tool.ruff]
 # 読みやすさと規律のバランス
 line-length = 120
-target-version = "py314"  # 3.14系の最新機能を使うという宣言
+target-version = "py315"  # 3.15系の最新機能を使うという宣言
 lint.select = ["E", "F", "I", "B"]
 exclude = ["**/migrations/*.py"]
 extend-exclude = ["*.html"]
